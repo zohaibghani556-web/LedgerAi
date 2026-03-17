@@ -505,6 +505,9 @@ function ingestData(data, filename) {
 
   updateSidebar();
   activatePeriod(periodKey); // Always switch to newly loaded period
+
+  // Save to cloud if user is logged in
+  setTimeout(() => saveTransactionsToCloud(periodKey, periods[periodKey]), 1500);
 }
 
 
@@ -1084,6 +1087,7 @@ function saveSettings() {
   }
   auditEntry('system', 'Settings saved', 'Currency: ' + settings.currency + ', Company: ' + settings.company);
   showToast('Settings saved — view updated.');
+  saveSettingsToCloud();
 }
 
 // ============================================================
@@ -2466,3 +2470,175 @@ function initMobile() {
 renderCOA();
 initMobile();
 auditEntry('system', 'LedgerAI session started', 'v5.0 — ' + new Date().toLocaleDateString());
+
+// ============================================================
+// SUPABASE AUTH + SAVE/LOAD
+// ============================================================
+let supabase = null;
+let currentUser = null;
+let sessionToken = null;
+
+async function initAuth() {
+  // Load Supabase SDK
+  await loadScript('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2');
+  try {
+    const res  = await fetch('/api/config');
+    const conf = await res.json();
+    if (!conf.supabaseUrl) return; // running locally without config
+    supabase = window.supabase.createClient(conf.supabaseUrl, conf.supabaseAnon);
+
+    // Check session
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      // Not logged in — redirect to auth
+      window.location.href = 'auth.html';
+      return;
+    }
+    currentUser  = session.user;
+    sessionToken = session.access_token;
+    updateUserUI();
+    await loadUserData();
+
+    // Listen for auth changes
+    supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') window.location.href = 'auth.html';
+      if (session) { currentUser = session.user; sessionToken = session.access_token; }
+    });
+  } catch(e) {
+    console.warn('Auth init failed — running in offline mode', e);
+  }
+}
+
+function loadScript(src) {
+  return new Promise((resolve, reject) => {
+    if (document.querySelector(`script[src="${src}"]`)) return resolve();
+    const s = document.createElement('script');
+    s.src = src; s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+
+function updateUserUI() {
+  if (!currentUser) return;
+  const name  = currentUser.user_metadata?.full_name || currentUser.email?.split('@')[0] || 'User';
+  const email = currentUser.email || '';
+  // Update topbar
+  const co = document.getElementById('topbarCompany');
+  if (co) co.textContent = name;
+  // Add sign out button if not already there
+  if (!document.getElementById('signOutBtn')) {
+    const btn = document.createElement('button');
+    btn.id = 'signOutBtn';
+    btn.className = 'topbar-btn topbar-btn-ghost';
+    btn.textContent = '⎋ Sign Out';
+    btn.onclick = signOut;
+    document.querySelector('.topbar-right')?.appendChild(btn);
+  }
+}
+
+async function signOut() {
+  if (supabase) await supabase.auth.signOut();
+  window.location.href = 'auth.html';
+}
+
+async function loadUserData() {
+  if (!sessionToken) return;
+  showToast('Loading your saved data…');
+  try {
+    const res  = await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'load_transactions', token: sessionToken })
+    });
+    const data = await res.json();
+    if (!data.success || !data.transactions?.length) {
+      showToast('No saved data yet — load a file to get started.');
+      return;
+    }
+    // Group transactions by period
+    const grouped = {};
+    data.transactions.forEach(t => {
+      const p = t.period || 'Imported';
+      if (!grouped[p]) grouped[p] = [];
+      grouped[p].push({
+        date:        t.date,
+        description: t.description,
+        amount:      t.amount,
+        category:    t.category,
+        flag:        t.flag
+      });
+    });
+    // Load into app
+    Object.entries(grouped).forEach(([period, txns]) => {
+      periods[period] = txns;
+      addPeriodToSidebar(period, txns.length);
+    });
+    // Activate first period
+    const firstPeriod = Object.keys(grouped)[0];
+    if (firstPeriod) activatePeriod(firstPeriod);
+    showToast(`✓ Loaded ${data.transactions.length} saved transactions`);
+
+    // Load settings too
+    const sRes  = await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'load_settings', token: sessionToken })
+    });
+    const sData = await sRes.json();
+    if (sData.success && sData.settings) {
+      settings.company    = sData.settings.company    || settings.company;
+      settings.industry   = sData.settings.industry   || settings.industry;
+      settings.currency   = sData.settings.currency   || settings.currency;
+      settings.fiscalYear = sData.settings.fiscal_year || settings.fiscalYear;
+      settings.aiMode     = sData.settings.ai_mode    || settings.aiMode;
+      const co = document.getElementById('topbarCompany');
+      if (co && settings.company !== 'Your Company') co.textContent = settings.company;
+    }
+  } catch(e) {
+    console.warn('Could not load saved data', e);
+    showToast('Running in offline mode — data will not be saved.');
+  }
+}
+
+async function saveTransactionsToCloud(period, txns) {
+  if (!sessionToken || !txns?.length) return;
+  try {
+    await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'save_transactions',
+        token:  sessionToken,
+        data:   { period, transactions: txns, accountType: 'personal' }
+      })
+    });
+  } catch(e) {
+    console.warn('Could not save to cloud', e);
+  }
+}
+
+async function saveSettingsToCloud() {
+  if (!sessionToken) return;
+  try {
+    await fetch('/api/db', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'save_settings',
+        token:  sessionToken,
+        data: {
+          company:    settings.company,
+          industry:   settings.industry,
+          currency:   settings.currency,
+          fiscalYear: settings.fiscalYear,
+          aiMode:     settings.aiMode
+        }
+      })
+    });
+  } catch(e) {
+    console.warn('Could not save settings', e);
+  }
+}
+
+// Call initAuth when page loads
+initAuth();
