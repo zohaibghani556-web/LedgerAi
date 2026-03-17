@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LedgerAI — Sign In</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.3/dist/umd/supabase.min.js"></script>
   <style>
     :root{--ink:#0f0e0b;--paper:#f5f0e6;--cream:#ede7d5;--rule:#c8bfa8;--muted:#7a7060;--red:#c0321a;--gold:#a87418;--green:#1a5c34;--green-l:#dff2e9;--red-l:#fcecea;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
@@ -146,24 +146,54 @@
 </div>
 
 <script>
-  let supabase = null;
+  let sbClient = null;
+
+  // Wait for Supabase SDK to be ready
+  function waitForSupabase() {
+    return new Promise((resolve) => {
+      if (window.supabase) return resolve();
+      const check = setInterval(() => {
+        if (window.supabase) { clearInterval(check); resolve(); }
+      }, 50);
+      setTimeout(() => { clearInterval(check); resolve(); }, 5000);
+    });
+  }
 
   // Initialize immediately on page load
   async function init() {
+    // Timeout after 10 seconds so it never hangs forever
+    const timeout = setTimeout(() => {
+      showMsg('Connection timed out. Please refresh the page.', 'error');
+      hideOverlay();
+    }, 10000);
+
     try {
+      // Wait for SDK first
+      await waitForSupabase();
+      console.log('Supabase SDK loaded:', !!window.supabase);
+
+      if (!window.supabase) {
+        showMsg('Supabase SDK failed to load. Check your internet connection.', 'error');
+        hideOverlay();
+        clearTimeout(timeout);
+        return;
+      }
+
       const res  = await fetch('/api/config');
       const conf = await res.json();
+      console.log('Config loaded:', conf.supabaseUrl ? 'URL present' : 'URL MISSING', conf.supabaseAnon ? 'Key present' : 'KEY MISSING');
+      clearTimeout(timeout);
 
       if (!conf.supabaseUrl || !conf.supabaseAnon) {
-        showMsg('Configuration error — please try refreshing the page.', 'error');
+        showMsg('Configuration error — Supabase keys not found. Check Vercel environment variables.', 'error');
         hideOverlay();
         return;
       }
 
-      supabase = window.supabase.createClient(conf.supabaseUrl, conf.supabaseAnon);
+      sbClient = window.supabase.createClient(conf.supabaseUrl, conf.supabaseAnon);
 
       // Check if already logged in
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session } } = await sbClient.auth.getSession();
       if (session) {
         window.location.href = 'app.html';
         return;
@@ -171,7 +201,8 @@
 
       hideOverlay();
     } catch(e) {
-      showMsg('Could not connect — please refresh the page. Error: ' + e.message, 'error');
+      clearTimeout(timeout);
+      showMsg('Could not connect — please refresh. (' + e.message + ')', 'error');
       hideOverlay();
     }
   }
@@ -190,14 +221,14 @@
 
   async function handleSignin(e) {
     e.preventDefault();
-    if (!supabase) { showMsg('Still connecting — please wait a moment and try again.', 'error'); return; }
+    if (!sbClient) { showMsg('Still connecting — please wait a moment and try again.', 'error'); return; }
     const btn   = document.getElementById('signinBtn');
     const email = document.getElementById('signinEmail').value.trim();
     const pass  = document.getElementById('signinPassword').value;
     setLoading(btn, true, 'Signing in…');
     clearMsg();
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      const { data, error } = await sbClient.auth.signInWithPassword({ email, password: pass });
       if (error) throw error;
       showMsg('✓ Signed in — loading your app…', 'success');
       setTimeout(() => window.location.href = 'app.html', 800);
@@ -209,7 +240,7 @@
 
   async function handleSignup(e) {
     e.preventDefault();
-    if (!supabase) { showMsg('Still connecting — please wait a moment and try again.', 'error'); return; }
+    if (!sbClient) { showMsg('Still connecting — please wait a moment and try again.', 'error'); return; }
     const btn   = document.getElementById('signupBtn');
     const name  = document.getElementById('signupName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
@@ -217,7 +248,7 @@
     setLoading(btn, true, 'Creating account…');
     clearMsg();
     try {
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await sbClient.auth.signUp({
         email,
         password: pass,
         options: { data: { full_name: name } }
@@ -257,6 +288,7 @@
   }
 
   // Start init right away
+  console.log('Auth page loading...');
   init();
 </script>
 </body>
