@@ -537,7 +537,7 @@ function activatePeriod(key) {
   renderView(viewId);
 
   // AI for uncategorized
-  if (settings.apiKey && settings.aiMode !== 'off') {
+  if (settings.aiMode !== 'off') {
     activeTransactions.forEach((row, i) => {
       if (!row.category || row.category === '' || row.category === 'Uncategorized') {
         setTimeout(() => aiCategorize(row, i), i * 1200);
@@ -1063,7 +1063,6 @@ function loadSettingsForm() {
   document.getElementById('sIndustry').value  = settings.industry;
   document.getElementById('sFiscalYear').value = settings.fiscalYear;
   document.getElementById('sCurrency').value  = settings.currency;
-  document.getElementById('sApiKey').value    = settings.apiKey;
   document.getElementById('sAiMode').value    = settings.aiMode;
   if (document.getElementById('sPlaidToken')) document.getElementById('sPlaidToken').value = settings.plaidLinkToken;
 }
@@ -1073,7 +1072,6 @@ function saveSettings() {
   settings.industry   = document.getElementById('sIndustry').value;
   settings.fiscalYear = document.getElementById('sFiscalYear').value;
   settings.currency   = document.getElementById('sCurrency').value;
-  settings.apiKey     = document.getElementById('sApiKey').value.trim();
   settings.aiMode     = document.getElementById('sAiMode').value;
   settings.plaidLinkToken = (document.getElementById('sPlaidToken')?.value || '').trim();
 
@@ -1882,7 +1880,7 @@ function levenshteinSimilarity(a, b) {
 // ============================================================
 // ============================================================
 async function aiCategorizeAll() {
-  if (!settings.apiKey) { showToast('Add your API key in Settings first.'); return; }
+  if (settings.aiMode === 'off') { showToast('AI mode is off — enable in Settings.'); return; }
   const uncategorized = activeTransactions
     .map((r,i) => ({r,i}))
     .filter(({r}) => !r.category || r.category === '' || r.category === 'Uncategorized');
@@ -1899,7 +1897,7 @@ async function aiCategorizeAll() {
 }
 
 async function aiCategorize(row, index) {
-  if (!settings.apiKey || settings.aiMode==='off') return;
+  if (settings.aiMode === 'off') return;
 
   const companyCtx = settings.company !== 'Your Company' ? `Company: ${settings.company} (${settings.industry})` : 'Company: Small Business';
   // Build context from already-categorized transactions so AI learns the pattern
@@ -2202,7 +2200,7 @@ async function renderAIMemo() {
     return;
   }
   const memoType = document.getElementById('memoType')?.value || 'month-end';
-  const hasApiKey = !!settings.apiKey;
+  const hasApiKey = true; // Key is secured on server via Vercel environment variable
 
   // Build financial summary for the prompt
   const sym = currencySymbol();
