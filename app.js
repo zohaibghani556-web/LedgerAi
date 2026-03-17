@@ -10,7 +10,6 @@ let settings = {
   industry:   'Marketing / Creative Agency',
   fiscalYear: '01',
   currency:   'USD',
-  apiKey:     '',
   aiMode:     'auto',
   plaidLinkToken: ''
 };
@@ -1951,9 +1950,9 @@ Respond ONLY with valid JSON, no markdown, no explanation:
   if (catCell) catCell.innerHTML = '<span class="badge b-pulse">⟳ AI analyzing...</span>';
 
   try {
-    const res  = await fetch('https://api.anthropic.com/v1/messages',{
+    const res  = await fetch('/api/claude',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':settings.apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json'},
       body: JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:150,messages:[{role:'user',content:prompt}]})
     });
     const data   = await res.json();
@@ -2275,13 +2274,10 @@ Significant flags: ${flagged.slice(0,3).map(r => r.description + ' — ' + r.fla
     </div>`;
 
   try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
+    const res = await fetch('/api/claude', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': settings.apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
