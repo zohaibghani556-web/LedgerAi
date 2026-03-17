@@ -3,734 +3,1502 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>LedgerAI — AI-Powered Bookkeeping & Audit Tools</title>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <title>LedgerAI — The Finance Tool Built by a Student Who Was Tired of Being Lost</title>
+  <meta name="description" content="Not QuickBooks. Not Xero. Something built by a 3rd-year accounting student who actually uses these tools. AI bookkeeping for real people."/>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&display=swap" rel="stylesheet">
   <style>
+    /* ── TOKENS ─────────────────────────────────── */
     :root {
-      --ink:    #0f0e0b;
-      --ink2:   #1c1b16;
-      --paper:  #f5f0e6;
-      --cream:  #ede7d5;
-      --rule:   #c8bfa8;
-      --muted:  #7a7060;
-      --red:    #c0321a;
-      --gold:   #a87418;
-      --green:  #1a5c34;
-      --blue:   #1c3d7a;
-      --green-l:#e0f2ea;
-      --red-l:  #fcecea;
+      --black:   #0a0a09;
+      --ink:     #111110;
+      --ink-2:   #1c1c1a;
+      --paper:   #f6f3ed;
+      --warm:    #ede9e0;
+      --rule:    #d6d0c4;
+      --muted:   #6b6760;
+      --faint:   #a8a39a;
+      --white:   #ffffff;
+      --red:     #c8341c;
+      --red-d:   #9e2815;
+      --red-l:   #fdf1ee;
+      --gold:    #a87820;
+      --gold-l:  #fdf8ec;
+      --green:   #1e6640;
+      --green-l: #eaf6ef;
+      --blue:    #1c3d7a;
     }
-    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-    html{font-size:14px;scroll-behavior:smooth;}
-    body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;overflow-x:hidden;}
-
-    /* NAV */
-    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 48px;background:rgba(245,240,230,0.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);}
-    .nav-logo{font-family:'Playfair Display',serif;font-size:19px;font-weight:900;color:var(--ink);text-decoration:none;display:flex;align-items:center;gap:8px;letter-spacing:-0.5px;}
-    .nav-dot{width:8px;height:8px;background:var(--red);border-radius:50%;flex-shrink:0;}
-    .nav-logo em{font-style:italic;color:var(--gold);}
-    .nav-links{display:flex;align-items:center;gap:2px;}
-    .nav-link{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-decoration:none;padding:6px 12px;transition:color .15s,background .15s;}
-    .nav-link:hover{color:var(--ink);background:var(--cream);}
-    .nav-cta{background:var(--red)!important;color:white!important;}
-    .nav-cta:hover{background:#a0280f!important;}
-
-    /* HERO — full bleed two-column */
-    .hero{min-height:100vh;padding-top:52px;display:grid;grid-template-columns:55% 45%;}
-
-    /* LEFT: newspaper */
-    .hero-left{
-      padding:70px 56px;
-      display:flex;flex-direction:column;justify-content:center;
-      background:var(--paper);
-      border-right:2px solid var(--ink);
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 14px; scroll-behavior: smooth; }
+    body {
+      background: var(--paper);
+      color: var(--ink);
+      font-family: 'DM Sans', sans-serif;
+      overflow-x: hidden;
+      cursor: default;
     }
-    .hero-dateline{
-      font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.2em;
-      color:var(--muted);margin-bottom:28px;display:flex;align-items:center;gap:12px;
+
+    /* ── CUSTOM CURSOR ──────────────────────────── */
+    .cursor-dot {
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9999;
+      transform: translate(-50%, -50%);
+      transition: transform 0.08s ease;
     }
-    .hdl{flex:1;height:1px;background:var(--rule);}
-    .hero-kicker{
-      font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.2em;
-      color:var(--red);margin-bottom:22px;display:flex;align-items:center;gap:10px;
+    .cursor-ring {
+      width: 28px; height: 28px;
+      border: 1.5px solid rgba(200,52,28,.35);
+      border-radius: 50%;
+      position: fixed; top: 0; left: 0;
+      pointer-events: none; z-index: 9998;
+      transform: translate(-50%, -50%);
+      transition: all 0.18s ease;
     }
-    .hero-kicker::before{content:'';width:20px;height:2px;background:var(--red);}
-    .hero-h1{
-      font-family:'Playfair Display',serif;font-weight:900;
-      font-size:clamp(50px,6vw,88px);line-height:.98;letter-spacing:-3px;
-      color:var(--ink);margin-bottom:28px;
+    body:has(a:hover) .cursor-ring,
+    body:has(button:hover) .cursor-ring { transform: translate(-50%, -50%) scale(1.6); border-color: rgba(200,52,28,.6); }
+
+    /* ── NAV ────────────────────────────────────── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      height: 54px;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px;
+      border-bottom: 1px solid transparent;
+      transition: background .25s, border-color .25s, backdrop-filter .25s;
     }
-    .hero-h1 em{font-style:italic;color:var(--red);}
-    .hero-deck{
-      font-size:14.5px;line-height:1.82;color:var(--muted);max-width:400px;
-      padding-left:16px;border-left:3px solid var(--rule);margin-bottom:44px;
+    nav.scrolled {
+      background: rgba(246,243,237,.92);
+      backdrop-filter: blur(16px);
+      border-color: var(--rule);
     }
-    .hero-btns{display:flex;gap:12px;flex-wrap:wrap;align-items:center;}
-    .btn-ink{
-      font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;
-      background:var(--ink);color:var(--paper);border:none;padding:14px 28px;cursor:pointer;
-      text-decoration:none;display:inline-flex;align-items:center;gap:8px;transition:background .15s,transform .12s;
+    .nav-logo {
+      font-family: 'Instrument Serif', serif;
+      font-size: 20px; font-style: italic;
+      color: var(--ink); text-decoration: none;
+      display: flex; align-items: center; gap: 9px;
+      letter-spacing: -.3px;
     }
-    .btn-ink:hover{background:var(--ink2);transform:translateY(-1px);}
-    .btn-outline{
-      font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;
-      color:var(--ink);border:1.5px solid var(--ink);padding:12px 18px;cursor:pointer;
-      text-decoration:none;background:transparent;display:inline-flex;align-items:center;gap:8px;
-      transition:all .15s;position:relative;
+    .nav-dot {
+      width: 8px; height: 8px;
+      background: var(--red); border-radius: 50%;
+      flex-shrink: 0;
+      animation: pulse-dot 2.4s ease-in-out infinite;
     }
-    .btn-outline:hover{background:var(--cream);}
-    .drop{position:absolute;top:calc(100% + 5px);left:0;background:var(--ink);min-width:210px;z-index:100;display:none;box-shadow:0 12px 40px rgba(0,0,0,.25);}
-    .drop.open{display:block;}
-    .drop-opt{display:block;width:100%;padding:11px 16px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.6);background:none;border:none;border-bottom:1px solid rgba(255,255,255,.06);cursor:pointer;text-align:left;transition:all .12s;}
-    .drop-opt:last-child{border-bottom:none;}
-    .drop-opt:hover{color:white;background:rgba(255,255,255,.08);}
-    .hero-stats{display:flex;gap:0;margin-top:52px;padding-top:28px;border-top:1px solid var(--rule);}
-    .hs{flex:1;padding-right:22px;margin-right:22px;border-right:1px solid var(--rule);}
-    .hs:last-child{border-right:none;padding-right:0;margin-right:0;}
-    .hs-n{font-family:'Playfair Display',serif;font-size:30px;font-weight:900;letter-spacing:-1px;color:var(--ink);}
-    .hs-l{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:3px;}
-
-    /* RIGHT: app preview — LIGHT theme so everything is readable */
-    .hero-right{
-      background:#f0ece0;
-      display:flex;flex-direction:column;overflow:hidden;
-      border-left:none;
+    @keyframes pulse-dot {
+      0%,100% { opacity:1; transform:scale(1); }
+      50% { opacity:.6; transform:scale(.85); }
     }
-    /* Browser chrome */
-    .app-chrome{
-      background:#e4dece;border-bottom:1px solid var(--rule);
-      height:40px;display:flex;align-items:center;padding:0 16px;gap:8px;flex-shrink:0;
+    .nav-links { display: flex; align-items: center; gap: 4px; }
+    .nav-link {
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); text-decoration: none;
+      padding: 6px 12px; border-radius: 3px;
+      transition: color .14s, background .14s;
     }
-    .chrome-dot{width:10px;height:10px;border-radius:50%;}
-    .chrome-url{
-      margin-left:8px;flex:1;background:white;border:1px solid var(--rule);border-radius:3px;
-      height:24px;display:flex;align-items:center;padding:0 10px;
-      font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);max-width:220px;
+    .nav-link:hover { color: var(--ink); background: var(--warm); }
+    .nav-pill {
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: rgba(255,255,255,.75); text-decoration: none;
+      padding: 7px 16px; border-radius: 3px;
+      background: var(--ink); transition: background .14s;
+      display: flex; align-items: center; gap: 6px;
     }
-    .chrome-label{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);margin-left:auto;text-transform:uppercase;letter-spacing:.1em;}
-    /* App topbar */
-    .app-topbar{
-      background:var(--ink);height:38px;display:flex;align-items:center;justify-content:space-between;
-      padding:0 16px;flex-shrink:0;
+    .nav-pill:hover { background: var(--red); }
+    .nav-pill-ghost {
+      background: transparent; color: var(--muted);
+      border: 1px solid var(--rule);
     }
-    .app-logo{font-family:'Playfair Display',serif;font-size:14px;font-weight:700;color:white;display:flex;align-items:center;gap:6px;}
-    .app-logo-dot{width:6px;height:6px;background:var(--red);border-radius:50%;}
-    .app-logo em{font-style:italic;color:#c8a050;}
-    .app-period{font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.08em;}
-    /* App body */
-    .app-body{display:grid;grid-template-columns:150px 1fr;flex:1;overflow:hidden;}
-    .app-sidebar{background:var(--ink2);padding:12px 0;overflow:hidden;}
-    .app-nav-section{padding:0 0 8px;}
-    .app-nav-lbl{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.14em;color:rgba(255,255,255,.2);padding:8px 12px 4px;}
-    .app-nav-item{display:flex;align-items:center;gap:6px;padding:6px 12px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.4);cursor:default;}
-    .app-nav-item.active{background:rgba(255,255,255,.08);color:white;}
-    .app-nav-item .ni{font-size:10px;}
-    .app-nav-item .nbadge{margin-left:auto;background:var(--red);color:white;font-size:7px;padding:1px 5px;border-radius:1px;}
-    /* Main content area */
-    .app-main{background:var(--paper);overflow:hidden;display:flex;flex-direction:column;}
-    /* Stat cards */
-    .stat-row-p{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);flex-shrink:0;}
-    .stat-p{background:white;padding:12px 14px;}
-    .stat-p-eye{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:5px;}
-    .stat-p-val{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;letter-spacing:-0.5px;color:var(--ink);}
-    .stat-p-val.red{color:var(--red);}  .stat-p-val.green{color:var(--green);}  .stat-p-val.gold{color:var(--gold);}
-    /* Chart area */
-    .chart-area{flex:1;padding:14px;display:flex;flex-direction:column;gap:10px;overflow:hidden;}
-    .ca-label{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:6px;}
-    .chart-bars{display:flex;flex-direction:column;gap:5px;}
-    .cb-row{display:flex;align-items:center;gap:8px;}
-    .cb-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);width:68px;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-    .cb-track{flex:1;height:14px;background:var(--cream);overflow:hidden;}
-    .cb-fill{height:100%;transition:width 1.4s cubic-bezier(.16,1,.3,1);}
-    .cb-val{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);width:44px;text-align:right;flex-shrink:0;}
-    /* Txn list */
-    .txn-list{display:flex;flex-direction:column;gap:0;border-top:1px solid var(--rule);}
-    .txn-row{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--cream);font-size:10px;}
-    .txn-row:last-child{border-bottom:none;}
-    .txn-date{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);width:54px;flex-shrink:0;}
-    .txn-desc{flex:1;color:var(--ink);font-size:10px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
-    .txn-cat{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding:2px 5px;background:var(--cream);}
-    .txn-amt{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--ink);width:54px;text-align:right;flex-shrink:0;}
-    /* Journal entry strip */
-    .je-strip{background:var(--ink);padding:12px 14px;flex-shrink:0;}
-    .je-strip-lbl{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);margin-bottom:6px;}
-    .je-strip-dr{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#6b9ef5;margin-bottom:2px;}
-    .je-strip-cr{font-family:'IBM Plex Mono',monospace;font-size:9px;color:#f07060;padding-left:18px;}
-    .je-strip-note{font-family:'IBM Plex Mono',monospace;font-size:7.5px;color:rgba(255,255,255,.3);margin-top:6px;border-top:1px solid rgba(255,255,255,.06);padding-top:6px;}
-    /* Balanced badge */
-    .balanced-badge{display:inline-flex;align-items:center;gap:4px;font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;background:var(--green-l);color:var(--green);padding:3px 8px;border:1px solid rgba(26,92,52,.2);}
-    /* AI badge */
-    .ai-tag{font-family:'IBM Plex Mono',monospace;font-size:7px;text-transform:uppercase;letter-spacing:.1em;background:rgba(168,116,24,.12);color:var(--gold);border:1px solid rgba(168,116,24,.2);padding:2px 7px;margin-left:auto;}
-    /* cursor */
-    .cursor{display:inline-block;width:5px;height:10px;background:var(--red);animation:blink 1s step-end infinite;vertical-align:middle;margin-left:1px;}
-    @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+    .nav-pill-ghost:hover { background: var(--warm); color: var(--ink); }
 
-    /* TICKER */
-    .ticker{background:var(--ink);overflow:hidden;padding:9px 0;border-top:2px solid var(--ink);}
-    .t-track{display:flex;animation:atick 40s linear infinite;white-space:nowrap;}
-    .t-item{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.35);padding:0 28px;display:flex;align-items:center;gap:10px;}
-    .t-item.hi{color:rgba(255,255,255,.75);}
-    .t-item::before{content:'◆';font-size:5px;color:var(--red);opacity:.6;}
-    @keyframes atick{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+    /* ── HERO ───────────────────────────────────── */
+    .hero {
+      min-height: 100vh;
+      padding-top: 54px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Grain overlay */
+    .hero::before {
+      content: '';
+      position: absolute; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 1;
+    }
 
-    /* SECTIONS — alternating light/dark */
-    .section-light{background:var(--paper);padding:80px 56px;border-top:2px solid var(--ink);}
-    .section-cream{background:var(--cream);padding:80px 56px;border-top:2px solid var(--ink);}
-    .section-dark{background:var(--ink);padding:80px 56px;border-top:2px solid var(--ink);}
+    .hero-left {
+      padding: 80px 64px 80px 64px;
+      display: flex; flex-direction: column; justify-content: center;
+      background: var(--paper);
+      border-right: 1px solid var(--rule);
+      position: relative; z-index: 2;
+    }
 
-    .sec-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.2em;color:var(--red);margin-bottom:12px;display:flex;align-items:center;gap:10px;}
-    .sec-eyebrow::before{content:'';width:20px;height:2px;background:var(--red);}
-    .sec-eyebrow.gold::before{background:var(--gold);}
-    .sec-eyebrow.gold{color:var(--gold);}
-    .sec-eyebrow.dim{color:rgba(255,255,255,.4);}
-    .sec-eyebrow.dim::before{background:rgba(255,255,255,.3);}
-    .sec-h2{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,52px);font-weight:900;letter-spacing:-1.5px;line-height:1.06;margin-bottom:16px;}
-    .sec-h2 em{font-style:italic;color:var(--red);}
-    .sec-h2.light{color:var(--paper);}
-    .sec-h2.light em{color:#d4b060;}
-    .sec-body{font-size:13.5px;line-height:1.85;color:var(--muted);max-width:560px;}
-    .sec-body.light{color:rgba(255,255,255,.5);}
+    /* The honest badge — differentiator #1 */
+    .honest-badge {
+      display: inline-flex; align-items: center; gap: 10px;
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .12em;
+      color: var(--muted);
+      margin-bottom: 32px;
+    }
+    .honest-badge-line { width: 32px; height: 1px; background: var(--rule); }
+    .honest-badge em { color: var(--red); font-style: normal; }
 
-    /* NEW BADGE */
-    .badge-new{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.1em;background:var(--red);color:white;padding:2px 7px;margin-left:6px;vertical-align:middle;}
+    /* The headline — no jargon, radical honesty */
+    .hero-h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(46px, 5.8vw, 82px);
+      line-height: .97;
+      letter-spacing: -2.5px;
+      color: var(--ink);
+      margin-bottom: 28px;
+    }
+    .hero-h1 .line-italic { font-style: italic; color: var(--red); }
+    .hero-h1 .line-faint  { color: var(--faint); }
 
-    /* NEWSPAPER 3-COL */
-    .np-masthead{border-bottom:3px double var(--ink);padding-bottom:18px;margin-bottom:2px;display:flex;justify-content:space-between;align-items:flex-end;}
-    .np-name{font-family:'Playfair Display',serif;font-size:34px;font-weight:900;letter-spacing:-1px;}
-    .np-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;text-align:right;line-height:2;}
-    .np-rule{height:1px;background:var(--rule);margin:2px 0 0;}
-    .np-cols{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr;gap:0;margin-top:36px;}
-    .np-col{padding:0 30px;}
-    .np-col:first-child{padding-left:0;}
-    .np-col:last-child{padding-right:0;}
-    .np-div{background:var(--rule);}
-    .np-k{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.2em;color:var(--red);margin-bottom:8px;}
-    .np-hd{font-family:'Playfair Display',serif;font-size:18px;font-weight:700;line-height:1.18;margin-bottom:10px;}
-    .np-hr{height:1px;background:var(--rule);margin:10px 0;}
-    .np-bd{font-size:12.5px;line-height:1.88;color:#444;}
-    .np-bd p{margin-bottom:9px;}
+    .hero-deck {
+      font-size: 15px; line-height: 1.8; color: var(--muted);
+      max-width: 400px; margin-bottom: 44px;
+      font-weight: 300;
+    }
+    .hero-deck strong { color: var(--ink); font-weight: 500; }
 
-    /* NUMBAND */
-    .numband{display:grid;grid-template-columns:repeat(4,1fr);background:var(--ink);border-top:2px solid var(--ink);}
-    .nb{padding:44px 40px;border-right:1px solid rgba(255,255,255,.05);}
-    .nb:last-child{border-right:none;}
-    .nb-n{font-family:'Playfair Display',serif;font-size:58px;font-weight:900;letter-spacing:-2px;line-height:1;color:var(--paper);margin-bottom:8px;}
-    .nb-l{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:rgba(255,255,255,.3);}
+    .hero-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 56px; }
+    .btn-primary {
+      font-family: 'DM Mono', monospace; font-size: 10.5px;
+      text-transform: uppercase; letter-spacing: .1em;
+      background: var(--ink); color: var(--paper);
+      border: none; padding: 15px 28px; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      border-radius: 2px; transition: background .14s, transform .1s;
+      position: relative; overflow: hidden;
+    }
+    .btn-primary::after {
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.07) 50%, transparent 70%);
+      transform: translateX(-100%); transition: transform .4s;
+    }
+    .btn-primary:hover { background: var(--red); transform: translateY(-1px); }
+    .btn-primary:hover::after { transform: translateX(100%); }
+    .btn-secondary {
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); border: 1.5px solid var(--rule);
+      background: transparent; padding: 13px 18px; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 7px;
+      border-radius: 2px; transition: all .14s;
+    }
+    .btn-secondary:hover { color: var(--ink); border-color: var(--ink); background: var(--warm); }
 
-    /* TWO-COL DEMO */
-    .demo-grid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:2px solid var(--ink);}
-    .demo-left{padding:72px 56px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid var(--rule);}
-    .demo-right{padding:56px 48px;display:flex;align-items:center;justify-content:center;background:var(--cream);}
-    /* WP Card */
-    .wp-card{background:white;border:1px solid var(--rule);box-shadow:0 4px 28px rgba(0,0,0,.1);width:100%;max-width:440px;overflow:hidden;}
-    .wpc-head{background:var(--ink);color:var(--paper);padding:12px 16px;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;}
-    .wpc-body{padding:0;}
-    .wpc-section{padding:12px 16px;border-bottom:1px solid #f0ece0;}
-    .wpc-sec-lbl{font-family:'IBM Plex Mono',monospace;font-size:7.5px;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);margin-bottom:8px;}
-    .wpr{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #f5f2eb;font-family:'IBM Plex Mono',monospace;font-size:9.5px;}
-    .wpr:last-child{border-bottom:none;}
-    .wpr-lbl{color:#444;flex:1;}
-    .wpr-curr{font-weight:600;width:66px;text-align:right;color:var(--ink);}
-    .wpr-prior{color:var(--muted);width:60px;text-align:right;}
-    .wpr-var{width:50px;text-align:right;}
-    .wpr-var.up{color:var(--red);}  .wpr-var.dn{color:var(--green);}
-    .wpc-flag{font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--red);background:var(--red-l);padding:6px 10px;border-left:2px solid var(--red);margin:8px 0 4px;}
-    .wpc-foot{padding:10px 16px;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);border-top:2px solid var(--ink);}
-    /* Checklist */
-    .checklist{display:flex;flex-direction:column;gap:10px;margin-top:24px;}
-    .cl-item{display:flex;gap:10px;font-size:13px;color:var(--ink);}
-    .cl-ck{color:var(--green);font-weight:700;flex-shrink:0;margin-top:1px;}
-    /* Memo cards */
-    .memo-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:rgba(255,255,255,.08);margin-top:44px;}
-    .mc{background:rgba(255,255,255,.04);padding:26px 22px;border:none;}
-    .mc-type{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.15em;color:rgba(255,255,255,.35);margin-bottom:10px;}
-    .mc-text{font-size:12.5px;line-height:1.85;color:rgba(255,255,255,.68);font-style:italic;}
-    .mc-tag{display:inline-block;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.08em;padding:3px 8px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.4);}
+    /* Social proof strip */
+    .social-proof {
+      display: flex; align-items: center; gap: 0;
+      padding-top: 32px; border-top: 1px solid var(--rule);
+    }
+    .sp-item {
+      flex: 1; padding-right: 24px; margin-right: 24px;
+      border-right: 1px solid var(--rule);
+    }
+    .sp-item:last-child { border-right: none; padding-right: 0; margin-right: 0; }
+    .sp-num {
+      font-family: 'Instrument Serif', serif;
+      font-size: 30px; font-weight: 400; font-style: italic;
+      color: var(--ink); letter-spacing: -1px; line-height: 1;
+      margin-bottom: 4px;
+    }
+    .sp-label {
+      font-family: 'DM Mono', monospace; font-size: 8.5px;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--faint);
+    }
 
-    /* FEATURES GRID */
-    .feat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--rule);margin-top:44px;}
-    .fc{background:var(--paper);padding:28px 24px;position:relative;overflow:hidden;transition:background .18s;}
-    .fc:hover{background:white;}
-    .fc.dark{background:var(--ink);}
-    .fc.dark:hover{background:var(--ink2);}
-    .fc-bar{position:absolute;top:0;left:0;right:0;height:3px;}
-    .fc-num{font-family:'Playfair Display',serif;font-size:56px;font-weight:900;color:rgba(0,0,0,.04);position:absolute;top:4px;right:10px;line-height:1;}
-    .fc.dark .fc-num{color:rgba(255,255,255,.04);}
-    .fc-icon{font-size:22px;margin-bottom:14px;}
-    .fc-name{font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--ink);margin-bottom:7px;}
-    .fc.dark .fc-name{color:var(--paper);}
-    .fc-desc{font-size:12px;line-height:1.72;color:var(--muted);}
-    .fc.dark .fc-desc{color:rgba(255,255,255,.45);}
+    /* ── HERO RIGHT: LIVE DEMO WINDOW ─────────── */
+    .hero-right {
+      background: var(--ink);
+      display: flex; flex-direction: column;
+      overflow: hidden; position: relative; z-index: 2;
+    }
 
-    /* PLAID SECTION */
-    .plaid-steps{display:flex;flex-direction:column;gap:14px;margin-top:22px;}
-    .ps{display:flex;gap:14px;align-items:flex-start;}
-    .ps-n{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;color:var(--blue);background:rgba(28,61,122,.09);padding:3px 9px;flex-shrink:0;margin-top:1px;}
-    .ps-t{font-size:13px;line-height:1.7;color:var(--ink);}
-    .plaid-card{background:white;border:1px solid var(--rule);box-shadow:0 4px 24px rgba(0,0,0,.09);padding:24px;width:100%;max-width:320px;}
-    .plaid-card-title{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--ink);margin-bottom:18px;display:flex;align-items:center;gap:7px;}
-    .bank-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #f0ece0;}
-    .bank-row:last-of-type{border-bottom:none;}
-    .bank-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
-    .bank-name{font-size:12px;font-weight:500;color:var(--ink);}
-    .bank-txns{font-size:10px;color:var(--muted);margin-top:1px;}
-    .bank-status{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--green);}
-    .plaid-note{margin-top:14px;padding:10px 12px;background:#f5f5f0;font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);line-height:1.9;}
+    /* Floating "AI is working" indicator */
+    .ai-indicator {
+      position: absolute; top: 60px; right: 16px; z-index: 10;
+      display: flex; align-items: center; gap: 7px;
+      background: rgba(168,120,32,.15);
+      border: 1px solid rgba(168,120,32,.3);
+      border-radius: 20px; padding: 5px 11px;
+      font-family: 'DM Mono', monospace; font-size: 8.5px;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: #c8a040;
+      animation: float-badge 3s ease-in-out infinite;
+    }
+    @keyframes float-badge { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);} }
+    .ai-dot { width: 5px; height: 5px; background: #c8a040; border-radius: 50%; animation: pulse-ai 1.4s ease-in-out infinite; }
+    @keyframes pulse-ai { 0%,100%{opacity:1;} 50%{opacity:.3;} }
 
-    /* FOUNDER */
-    .founder-in{max-width:880px;margin:0 auto;display:grid;grid-template-columns:auto 1fr;gap:52px;align-items:start;}
-    .f-av{width:72px;height:72px;background:var(--ink);display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:26px;font-weight:900;color:var(--paper);flex-shrink:0;}
-    .f-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.18em;color:var(--muted);margin-bottom:7px;}
-    .f-name{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:-0.5px;color:var(--ink);margin-bottom:3px;}
-    .f-role{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:16px;}
-    .f-bio{font-size:13px;line-height:1.9;color:#444;max-width:560px;}
-    .f-links{display:flex;gap:20px;margin-top:16px;flex-wrap:wrap;}
-    .f-link{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);text-decoration:none;border-bottom:1px solid var(--rule);padding-bottom:2px;transition:color .14s,border-color .14s;}
-    .f-link:hover{color:var(--ink);border-color:var(--ink);}
+    /* App window chrome */
+    .window-chrome {
+      height: 36px; background: rgba(255,255,255,.05);
+      border-bottom: 1px solid rgba(255,255,255,.07);
+      display: flex; align-items: center; padding: 0 14px; gap: 7px;
+      flex-shrink: 0;
+    }
+    .wc-dot { width: 9px; height: 9px; border-radius: 50%; }
+    .wc-url {
+      flex: 1; background: rgba(255,255,255,.06); border-radius: 3px;
+      height: 20px; display: flex; align-items: center; padding: 0 10px;
+      font-family: 'DM Mono', monospace; font-size: 8.5px;
+      color: rgba(255,255,255,.25); max-width: 200px; margin-left: 8px;
+    }
 
-    /* CTA */
-    .cta-inner{max-width:660px;margin:0 auto;text-align:center;}
-    .cta-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-top:36px;}
-    .btn-paper{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;background:var(--paper);color:var(--ink);border:none;padding:14px 30px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;gap:8px;font-weight:600;transition:transform .12s;}
-    .btn-paper:hover{transform:translateY(-1px);}
-    .btn-outline-light{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.2);padding:12px 18px;cursor:pointer;text-decoration:none;background:none;display:inline-flex;align-items:center;gap:8px;transition:all .14s;position:relative;}
-    .btn-outline-light:hover{border-color:rgba(255,255,255,.6);color:white;}
+    /* Mini app topbar */
+    .mini-topbar {
+      height: 34px; background: rgba(0,0,0,.4);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 14px; flex-shrink: 0;
+      border-bottom: 1px solid rgba(255,255,255,.06);
+    }
+    .mt-logo {
+      font-family: 'Instrument Serif', serif; font-size: 13px;
+      font-style: italic; color: rgba(255,255,255,.8);
+      display: flex; align-items: center; gap: 5px;
+    }
+    .mt-dot { width: 5px; height: 5px; background: var(--red); border-radius: 50%; }
+    .mt-period { font-family: 'DM Mono', monospace; font-size: 8px; color: rgba(255,255,255,.28); text-transform: uppercase; letter-spacing: .08em; }
 
-    /* FOOTER */
-    footer{background:var(--ink);border-top:1px solid rgba(255,255,255,.05);padding:22px 56px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:14px;}
-    .ft-logo{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:rgba(255,255,255,.25);display:flex;align-items:center;gap:7px;}
-    .ft-logo em{font-style:italic;color:rgba(168,116,24,.5);}
-    .ft-note{font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.15);text-transform:uppercase;letter-spacing:.06em;}
-    .ft-links{display:flex;gap:18px;}
-    .ft-lnk{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.2);text-decoration:none;transition:color .14s;}
-    .ft-lnk:hover{color:rgba(255,255,255,.65);}
+    /* Mini app body */
+    .mini-body { display: grid; grid-template-columns: 130px 1fr; flex: 1; overflow: hidden; min-height: 0; }
+    .mini-sidebar { background: rgba(0,0,0,.35); padding: 10px 0; overflow: hidden; border-right: 1px solid rgba(255,255,255,.05); }
+    .mini-nav-lbl { font-family: 'DM Mono', monospace; font-size: 7px; text-transform: uppercase; letter-spacing: .14em; color: rgba(255,255,255,.18); padding: 6px 11px 4px; }
+    .mini-nav-item { display: flex; align-items: center; gap: 6px; padding: 5.5px 11px; font-family: 'DM Mono', monospace; font-size: 8.5px; color: rgba(255,255,255,.32); }
+    .mini-nav-item.active { background: rgba(255,255,255,.08); color: rgba(255,255,255,.85); }
+    .mini-nav-item .badge { margin-left: auto; background: var(--red); color: white; font-size: 6.5px; padding: 1px 4px; border-radius: 1px; }
 
-    /* REVEAL */
-    .r{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s ease;}
-    .r.in{opacity:1;transform:translateY(0);}
-    .d1{transition-delay:.08s;} .d2{transition-delay:.16s;} .d3{transition-delay:.24s;}
+    /* Mini stats */
+    .mini-main { overflow: hidden; display: flex; flex-direction: column; }
+    .mini-stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; background: rgba(255,255,255,.06); flex-shrink: 0; }
+    .mini-stat { background: rgba(255,255,255,.03); padding: 10px 12px; }
+    .ms-eye { font-family: 'DM Mono', monospace; font-size: 6.5px; text-transform: uppercase; letter-spacing: .1em; color: rgba(255,255,255,.22); margin-bottom: 4px; }
+    .ms-val { font-family: 'Instrument Serif', serif; font-size: 15px; font-style: italic; color: rgba(255,255,255,.85); letter-spacing: -.3px; }
+    .ms-val.red { color: #e86050; }
+    .ms-val.green { color: #5ec88a; }
+    .ms-val.gold { color: #c8a040; }
 
-    @media(max-width:960px){
-      nav{padding:0 20px;}
-      .hero{grid-template-columns:1fr;}
-      .hero-right{display:none;}
-      .hero-left{padding:52px 24px;}
-      .section-light,.section-cream,.section-dark{padding:52px 24px;}
-      .np-cols{grid-template-columns:1fr;gap:24px;}
-      .np-col{padding:0;}
-      .np-div{display:none;}
-      .numband{grid-template-columns:1fr 1fr;}
-      .demo-grid{grid-template-columns:1fr;}
-      .demo-left{padding:52px 24px;}
-      .demo-right{padding:32px 24px;}
-      .feat-grid{grid-template-columns:1fr 1fr;}
-      .founder-in{grid-template-columns:1fr;gap:20px;}
-      footer{padding:20px 24px;flex-direction:column;text-align:center;}
+    /* Mini chart */
+    .mini-content { padding: 12px; display: flex; flex-direction: column; gap: 8px; overflow: hidden; }
+    .mc-label { font-family: 'DM Mono', monospace; font-size: 7px; text-transform: uppercase; letter-spacing: .12em; color: rgba(255,255,255,.25); }
+    .mc-bars { display: flex; flex-direction: column; gap: 5px; }
+    .mc-row { display: flex; align-items: center; gap: 6px; }
+    .mc-lbl { font-family: 'DM Mono', monospace; font-size: 7.5px; color: rgba(255,255,255,.35); width: 60px; flex-shrink: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+    .mc-track { flex: 1; height: 10px; background: rgba(255,255,255,.06); overflow: hidden; border-radius: 1px; }
+    .mc-fill { height: 100%; border-radius: 1px; transition: width 1.6s cubic-bezier(.16,1,.3,1); }
+    .mc-val { font-family: 'DM Mono', monospace; font-size: 7.5px; color: rgba(255,255,255,.35); width: 40px; text-align: right; flex-shrink: 0; }
+
+    /* AI categorization animation strip */
+    .ai-strip {
+      background: rgba(168,120,32,.08);
+      border-top: 1px solid rgba(168,120,32,.15);
+      padding: 8px 12px; flex-shrink: 0;
+    }
+    .ai-strip-lbl { font-family: 'DM Mono', monospace; font-size: 7px; text-transform: uppercase; letter-spacing: .1em; color: rgba(168,120,32,.6); margin-bottom: 5px; }
+    .ai-txn { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; font-family: 'DM Mono', monospace; font-size: 8px; color: rgba(255,255,255,.4); }
+    .ai-txn-cat { margin-left: auto; font-size: 7px; padding: 2px 6px; border-radius: 1px; }
+    .ai-done { background: rgba(94,200,138,.15); color: #5ec88a; }
+    .ai-pending { background: rgba(168,120,32,.15); color: #c8a040; animation: cat-pulse 1.2s ease-in-out infinite; }
+    @keyframes cat-pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
+
+    /* ── TICKER ─────────────────────────────────── */
+    .ticker {
+      background: var(--ink); overflow: hidden;
+      padding: 10px 0; border-top: 1px solid rgba(255,255,255,.05);
+    }
+    .ticker-track { display: flex; animation: ticker-scroll 50s linear infinite; white-space: nowrap; }
+    .ticker-item {
+      font-family: 'DM Mono', monospace; font-size: 9px;
+      text-transform: uppercase; letter-spacing: .09em;
+      color: rgba(255,255,255,.22); padding: 0 26px;
+      display: flex; align-items: center; gap: 10px;
+    }
+    .ticker-item.hi { color: rgba(255,255,255,.65); }
+    .ticker-item::before { content: '◆'; font-size: 5px; color: var(--red); opacity: .4; }
+    @keyframes ticker-scroll { from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+    /* ── SECTION BASE ───────────────────────────── */
+    section { position: relative; }
+    .container { max-width: 1140px; margin: 0 auto; padding: 0 48px; }
+
+    /* ── THE HONEST STORY SECTION ─────────────── */
+    .story-section {
+      background: var(--white);
+      border-top: 1px solid var(--rule);
+      padding: 100px 0;
+    }
+    .story-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 80px; align-items: center;
+    }
+    .story-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .18em;
+      color: var(--red); margin-bottom: 20px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .story-eyebrow::before { content: ''; width: 28px; height: 1.5px; background: var(--red); }
+    .story-h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(30px, 3.5vw, 44px);
+      letter-spacing: -1.2px; line-height: 1.08;
+      color: var(--ink); margin-bottom: 24px;
+    }
+    .story-h2 em { font-style: italic; color: var(--red); }
+    .story-body {
+      font-size: 14.5px; line-height: 1.9; color: var(--muted);
+      font-weight: 300;
+    }
+    .story-body p { margin-bottom: 16px; }
+    .story-body strong { color: var(--ink); font-weight: 500; }
+
+    /* Quote card */
+    .quote-card {
+      background: var(--ink); color: var(--paper);
+      padding: 40px; position: relative; overflow: hidden;
+    }
+    .quote-card::before {
+      content: '\201C';
+      font-family: 'Instrument Serif', serif;
+      font-size: 120px; font-style: italic;
+      color: rgba(255,255,255,.05);
+      position: absolute; top: -10px; left: 20px;
+      line-height: 1; pointer-events: none;
+    }
+    .quote-text {
+      font-family: 'Instrument Serif', serif;
+      font-size: 20px; font-style: italic;
+      line-height: 1.5; letter-spacing: -.3px;
+      color: rgba(255,255,255,.85);
+      margin-bottom: 24px; position: relative;
+    }
+    .quote-text em { color: #c8a040; }
+    .quote-attr {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .12em;
+      color: rgba(255,255,255,.3);
+    }
+    .quote-attr strong { color: rgba(255,255,255,.6); display: block; margin-bottom: 3px; font-size: 11px; letter-spacing: .06em; text-transform: none; font-family: 'DM Sans', sans-serif; font-weight: 500; }
+
+    /* ── WHAT MAKES IT DIFFERENT ──────────────── */
+    .diff-section {
+      background: var(--paper);
+      border-top: 1px solid var(--rule);
+      padding: 100px 0;
+    }
+    .diff-header {
+      margin-bottom: 64px;
+    }
+    .diff-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .18em;
+      color: var(--muted); margin-bottom: 16px;
+    }
+    .diff-h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(32px, 4vw, 52px);
+      letter-spacing: -1.5px; line-height: 1.04;
+      color: var(--ink);
+    }
+    .diff-h2 em { font-style: italic; color: var(--red); }
+
+    /* Comparison table — brutally honest */
+    .comparison-table {
+      width: 100%; border-collapse: collapse; margin-bottom: 64px;
+    }
+    .ct-head th {
+      font-family: 'DM Mono', monospace; font-size: 9px;
+      text-transform: uppercase; letter-spacing: .1em;
+      padding: 14px 20px; text-align: left;
+      border-bottom: 2px solid var(--ink);
+    }
+    .ct-head th:first-child { width: 35%; }
+    .ct-head .th-us { background: var(--ink); color: var(--paper); text-align: center; }
+    .ct-head .th-them { color: var(--faint); text-align: center; }
+    .comparison-table td {
+      padding: 14px 20px; border-bottom: 1px solid var(--rule);
+      font-size: 13px;
+    }
+    .comparison-table td:nth-child(2),
+    .comparison-table td:nth-child(3),
+    .comparison-table td:nth-child(4) { text-align: center; }
+    .comparison-table tr:hover td { background: var(--warm); }
+    .ct-feature { font-weight: 500; color: var(--ink); }
+    .ct-sub { font-family: 'DM Mono', monospace; font-size: 10px; color: var(--faint); font-weight: 400; display: block; margin-top: 2px; }
+    .ct-yes { color: var(--green); font-size: 15px; }
+    .ct-no  { color: var(--faint); font-size: 13px; opacity: .5; }
+    .ct-partial { color: var(--gold); font-size: 12px; font-family: 'DM Mono', monospace; }
+    .ct-us-col { background: rgba(200,52,28,.03); }
+
+    /* ── FEATURE GRID ───────────────────────────── */
+    .features-section {
+      background: var(--ink);
+      border-top: 1px solid rgba(255,255,255,.06);
+      padding: 100px 0;
+    }
+    .features-header { margin-bottom: 56px; }
+    .feat-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .18em;
+      color: rgba(255,255,255,.25); margin-bottom: 16px;
+    }
+    .feat-h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(30px, 3.8vw, 48px);
+      letter-spacing: -1.2px; line-height: 1.06;
+      color: var(--paper);
+    }
+    .feat-h2 em { font-style: italic; color: #c8a040; }
+
+    .feat-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 1px; background: rgba(255,255,255,.06);
+    }
+    .feat-card {
+      background: var(--ink);
+      padding: 36px 32px;
+      transition: background .18s;
+      position: relative; overflow: hidden;
+    }
+    .feat-card::before {
+      content: ''; position: absolute;
+      bottom: 0; left: 0; right: 0; height: 2px;
+      background: var(--fc-color, var(--red));
+      transform: scaleX(0); transition: transform .25s ease;
+      transform-origin: left;
+    }
+    .feat-card:hover { background: rgba(255,255,255,.025); }
+    .feat-card:hover::before { transform: scaleX(1); }
+    .feat-num {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: rgba(255,255,255,.18); margin-bottom: 16px;
+    }
+    .feat-icon { font-size: 22px; margin-bottom: 14px; display: block; }
+    .feat-name {
+      font-family: 'Instrument Serif', serif;
+      font-size: 18px; font-style: italic;
+      color: rgba(255,255,255,.88); letter-spacing: -.2px;
+      margin-bottom: 10px;
+    }
+    .feat-desc {
+      font-size: 13px; line-height: 1.75; color: rgba(255,255,255,.38);
+      font-weight: 300;
+    }
+    .feat-tag {
+      display: inline-block; margin-top: 12px;
+      font-family: 'DM Mono', monospace; font-size: 8px;
+      text-transform: uppercase; letter-spacing: .08em;
+      padding: 3px 8px; border-radius: 2px;
+    }
+
+    /* ── PROFILE CHOOSER ────────────────────────── */
+    .profiles-section {
+      background: var(--white);
+      border-top: 1px solid var(--rule);
+      padding: 100px 0;
+    }
+    .profiles-header { margin-bottom: 56px; text-align: center; }
+    .prof-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .18em;
+      color: var(--muted); margin-bottom: 16px;
+    }
+    .prof-h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(30px, 3.8vw, 46px);
+      letter-spacing: -1.2px; line-height: 1.06;
+      color: var(--ink);
+    }
+    .prof-h2 em { font-style: italic; color: var(--red); }
+    .prof-sub {
+      font-size: 14px; color: var(--muted); margin-top: 12px;
+      font-weight: 300; max-width: 480px; margin-left: auto; margin-right: auto;
+      line-height: 1.75;
+    }
+
+    .profiles-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 1px; background: var(--rule);
+    }
+    .profile-card {
+      background: var(--white); padding: 36px 28px;
+      cursor: pointer; transition: all .2s;
+      text-align: left; border: none; position: relative;
+      overflow: hidden;
+    }
+    .profile-card::after {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+      background: var(--pc-color); transform: scaleX(0);
+      transition: transform .22s ease; transform-origin: left;
+    }
+    .profile-card:hover::after { transform: scaleX(1); }
+    .profile-card:hover { background: var(--warm); transform: translateY(-2px); box-shadow: 0 8px 32px rgba(0,0,0,.08); }
+    .pc-emoji { font-size: 28px; margin-bottom: 16px; display: block; }
+    .pc-name {
+      font-family: 'Instrument Serif', serif; font-size: 18px;
+      font-style: italic; color: var(--ink); letter-spacing: -.2px;
+      margin-bottom: 8px;
+    }
+    .pc-desc { font-size: 12.5px; color: var(--muted); line-height: 1.65; font-weight: 300; margin-bottom: 16px; }
+    .pc-features-list { list-style: none; }
+    .pc-features-list li {
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      color: var(--faint); padding: 4px 0;
+      border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; gap: 7px;
+    }
+    .pc-features-list li:last-child { border-bottom: none; }
+    .pc-features-list li::before { content: '—'; color: var(--pc-color); font-size: 8px; flex-shrink: 0; }
+    .pc-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      margin-top: 20px; font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--pc-color); text-decoration: none;
+      transition: gap .14s;
+    }
+    .profile-card:hover .pc-cta { gap: 10px; }
+
+    /* ── NUMBERS BAND ───────────────────────────── */
+    .numbers-band {
+      background: var(--ink);
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+    .nb-grid {
+      display: grid; grid-template-columns: repeat(4,1fr);
+    }
+    .nb-cell {
+      padding: 52px 44px;
+      border-right: 1px solid rgba(255,255,255,.05);
+      position: relative;
+    }
+    .nb-cell:last-child { border-right: none; }
+    .nb-num {
+      font-family: 'Instrument Serif', serif;
+      font-size: 60px; font-style: italic;
+      letter-spacing: -2px; line-height: 1;
+      color: var(--paper); margin-bottom: 8px;
+    }
+    .nb-label {
+      font-family: 'DM Mono', monospace; font-size: 8.5px;
+      text-transform: uppercase; letter-spacing: .12em;
+      color: rgba(255,255,255,.25);
+    }
+
+    /* ── FOUNDER SECTION ────────────────────────── */
+    .founder-section {
+      background: var(--paper);
+      border-top: 1px solid var(--rule);
+      padding: 100px 0;
+    }
+    .founder-grid {
+      display: grid; grid-template-columns: 280px 1fr;
+      gap: 72px; align-items: start;
+    }
+    .founder-left { position: sticky; top: 80px; }
+    .founder-avatar {
+      width: 80px; height: 80px;
+      background: var(--ink); border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'Instrument Serif', serif;
+      font-size: 28px; font-style: italic;
+      color: var(--paper); margin-bottom: 20px;
+      letter-spacing: -1px;
+    }
+    .founder-name {
+      font-family: 'Instrument Serif', serif;
+      font-size: 22px; font-style: italic;
+      letter-spacing: -.5px; color: var(--ink);
+      margin-bottom: 6px;
+    }
+    .founder-title {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .1em;
+      color: var(--muted); line-height: 1.7;
+    }
+    .founder-links { display: flex; flex-direction: column; gap: 6px; margin-top: 20px; }
+    .founder-link {
+      font-family: 'DM Mono', monospace; font-size: 10px;
+      color: var(--muted); text-decoration: none;
+      padding: 5px 0; border-bottom: 1px solid var(--rule);
+      display: flex; align-items: center; gap: 6px;
+      transition: color .14s, border-color .14s;
+    }
+    .founder-link:hover { color: var(--ink); border-color: var(--ink); }
+
+    .founder-right {}
+    .founder-story-lbl {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .18em;
+      color: var(--red); margin-bottom: 24px;
+      display: flex; align-items: center; gap: 12px;
+    }
+    .founder-story-lbl::before { content: ''; width: 28px; height: 1.5px; background: var(--red); }
+    .founder-story-h3 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(26px, 3vw, 36px);
+      letter-spacing: -.8px; line-height: 1.12;
+      color: var(--ink); margin-bottom: 24px;
+    }
+    .founder-story-h3 em { font-style: italic; color: var(--red); }
+    .founder-story-body {
+      font-size: 14.5px; line-height: 1.9; color: var(--muted);
+      font-weight: 300;
+    }
+    .founder-story-body p { margin-bottom: 18px; }
+    .founder-story-body strong { color: var(--ink); font-weight: 500; }
+
+    /* Experience cards */
+    .experience-cards { display: flex; flex-direction: column; gap: 12px; margin-top: 32px; }
+    .exp-card {
+      background: var(--white); border: 1px solid var(--rule);
+      padding: 20px 24px; border-left: 3px solid var(--exp-color, var(--rule));
+      transition: border-left-color .2s, transform .15s;
+    }
+    .exp-card:hover { transform: translateX(4px); }
+    .exp-role {
+      font-weight: 500; font-size: 13.5px; color: var(--ink); margin-bottom: 3px;
+    }
+    .exp-where {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: var(--muted); margin-bottom: 8px;
+    }
+    .exp-desc { font-size: 12.5px; color: var(--muted); line-height: 1.65; }
+
+    /* ── LIVE DEMO CTA ──────────────────────────── */
+    .demo-section {
+      background: var(--warm);
+      border-top: 1px solid var(--rule);
+      padding: 80px 0;
+    }
+    .demo-inner { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+    .demo-left-copy {}
+    .demo-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .18em;
+      color: var(--muted); margin-bottom: 16px;
+    }
+    .demo-h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(28px, 3.5vw, 42px);
+      letter-spacing: -1px; line-height: 1.1;
+      color: var(--ink); margin-bottom: 16px;
+    }
+    .demo-h2 em { font-style: italic; color: var(--red); }
+    .demo-body { font-size: 14px; color: var(--muted); line-height: 1.8; font-weight: 300; margin-bottom: 28px; }
+    .demo-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+
+    /* Sample data dropdown */
+    .dropdown-wrap { position: relative; }
+    .dropdown-menu {
+      position: absolute; top: calc(100% + 6px); left: 0;
+      background: var(--ink); min-width: 200px; z-index: 100;
+      box-shadow: 0 12px 40px rgba(0,0,0,.2);
+      display: none;
+    }
+    .dropdown-menu.open { display: block; }
+    .dm-option {
+      display: block; width: 100%; padding: 11px 16px;
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .06em;
+      color: rgba(255,255,255,.5); background: none; border: none;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+      cursor: pointer; text-align: left; transition: all .12s;
+    }
+    .dm-option:last-child { border-bottom: none; }
+    .dm-option:hover { color: white; background: rgba(255,255,255,.06); }
+
+    .demo-stats {
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .ds-item {
+      background: var(--white); border: 1px solid var(--rule);
+      padding: 18px 20px; display: flex; align-items: center; gap: 16px;
+    }
+    .ds-icon { font-size: 20px; flex-shrink: 0; }
+    .ds-label { font-size: 12.5px; color: var(--muted); font-weight: 300; line-height: 1.5; }
+    .ds-label strong { color: var(--ink); font-weight: 500; }
+
+    /* ── FINAL CTA ──────────────────────────────── */
+    .final-cta {
+      background: var(--ink);
+      border-top: 1px solid rgba(255,255,255,.05);
+      padding: 120px 0;
+      text-align: center;
+      position: relative; overflow: hidden;
+    }
+    .final-cta::before {
+      content: '';
+      position: absolute;
+      top: -200px; left: 50%; transform: translateX(-50%);
+      width: 600px; height: 600px;
+      background: radial-gradient(circle, rgba(200,52,28,.08) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .fc-eyebrow {
+      font-family: 'DM Mono', monospace; font-size: 9.5px;
+      text-transform: uppercase; letter-spacing: .2em;
+      color: rgba(255,255,255,.25); margin-bottom: 20px;
+    }
+    .fc-h2 {
+      font-family: 'Instrument Serif', serif;
+      font-size: clamp(36px, 5.5vw, 70px);
+      font-style: italic; letter-spacing: -2px; line-height: 1.0;
+      color: var(--paper); margin-bottom: 20px;
+    }
+    .fc-h2 em { color: #c8a040; font-style: normal; }
+    .fc-sub {
+      font-size: 14.5px; color: rgba(255,255,255,.38);
+      font-weight: 300; max-width: 440px;
+      margin: 0 auto 44px; line-height: 1.8;
+    }
+    .fc-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-white {
+      font-family: 'DM Mono', monospace; font-size: 11px;
+      text-transform: uppercase; letter-spacing: .1em;
+      background: var(--paper); color: var(--ink);
+      border: none; padding: 16px 32px; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+      border-radius: 2px; font-weight: 600;
+      transition: transform .12s, box-shadow .12s;
+    }
+    .btn-white:hover { transform: translateY(-2px); box-shadow: 0 10px 32px rgba(0,0,0,.3); }
+    .btn-ghost-white {
+      font-family: 'DM Mono', monospace; font-size: 10.5px;
+      text-transform: uppercase; letter-spacing: .08em;
+      color: rgba(255,255,255,.4); border: 1.5px solid rgba(255,255,255,.12);
+      background: transparent; padding: 14px 22px; cursor: pointer;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 7px;
+      border-radius: 2px; transition: all .14s;
+    }
+    .btn-ghost-white:hover { color: white; border-color: rgba(255,255,255,.4); }
+
+    /* Trust note */
+    .trust-note {
+      margin-top: 32px; font-family: 'DM Mono', monospace; font-size: 9px;
+      text-transform: uppercase; letter-spacing: .12em;
+      color: rgba(255,255,255,.18);
+      display: flex; align-items: center; justify-content: center; gap: 16px;
+    }
+    .trust-divider { width: 1px; height: 12px; background: rgba(255,255,255,.1); }
+
+    /* ── FOOTER ─────────────────────────────────── */
+    footer {
+      background: var(--black);
+      border-top: 1px solid rgba(255,255,255,.04);
+      padding: 28px 48px;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 14px;
+    }
+    .ft-logo {
+      font-family: 'Instrument Serif', serif; font-size: 17px; font-style: italic;
+      color: rgba(255,255,255,.2); display: flex; align-items: center; gap: 7px;
+    }
+    .ft-note { font-family: 'DM Mono', monospace; font-size: 8.5px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.12); }
+    .ft-links { display: flex; gap: 20px; }
+    .ft-lnk {
+      font-family: 'DM Mono', monospace; font-size: 8.5px; text-transform: uppercase;
+      letter-spacing: .07em; color: rgba(255,255,255,.18); text-decoration: none;
+      transition: color .14s;
+    }
+    .ft-lnk:hover { color: rgba(255,255,255,.6); }
+
+    /* ── REVEAL ANIMATIONS ──────────────────────── */
+    .reveal {
+      opacity: 0; transform: translateY(18px);
+      transition: opacity .6s ease, transform .6s ease;
+    }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .d1 { transition-delay: .06s; }
+    .d2 { transition-delay: .13s; }
+    .d3 { transition-delay: .20s; }
+    .d4 { transition-delay: .27s; }
+
+    /* ── MOBILE ─────────────────────────────────── */
+    @media(max-width: 960px) {
+      nav { padding: 0 20px; }
+      nav .nav-links .nav-link { display: none; }
+      nav .nav-links .nav-pill:first-of-type { display: none; }
+      .hero { grid-template-columns: 1fr; }
+      .hero-right { display: none; }
+      .hero-left { padding: 60px 24px; }
+      .container { padding: 0 24px; }
+      .story-section, .diff-section, .profiles-section, .founder-section { padding: 64px 0; }
+      .features-section, .final-cta { padding: 64px 0; }
+      .story-grid { grid-template-columns: 1fr; gap: 40px; }
+      .feat-grid { grid-template-columns: 1fr 1fr; }
+      .profiles-grid { grid-template-columns: 1fr 1fr; }
+      .nb-grid { grid-template-columns: 1fr 1fr; }
+      .demo-inner { grid-template-columns: 1fr; gap: 40px; }
+      .founder-grid { grid-template-columns: 1fr; gap: 32px; }
+      .founder-left { position: static; }
+      footer { padding: 20px 24px; flex-direction: column; text-align: center; }
+      .comparison-table { display: none; }
+    }
+    @media(max-width: 600px) {
+      .hero-h1 { font-size: 42px; letter-spacing: -1.5px; }
+      .social-proof { flex-direction: column; gap: 20px; }
+      .sp-item { border-right: none; border-bottom: 1px solid var(--rule); padding-bottom: 20px; margin-bottom: 20px; }
+      .sp-item:last-child { border-bottom: none; }
+      .feat-grid { grid-template-columns: 1fr; }
+      .profiles-grid { grid-template-columns: 1fr; }
+      .nb-grid { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- NAV -->
-<nav>
-  <a href="#" class="nav-logo"><span class="nav-dot"></span>Ledger<em>AI</em></a>
+<!-- Custom cursor -->
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- ══════════ NAV ══════════════════════════════════ -->
+<nav id="nav">
+  <a href="#" class="nav-logo"><span class="nav-dot"></span>LedgerAI</a>
   <div class="nav-links">
-    <a href="#accounting" class="nav-link">Accounting</a>
-    <a href="showcase.html" class="nav-link" style="color:var(--gold);border:1px solid rgba(168,116,24,.3);padding:5px 10px;">📊 Live Demo</a>
-    <a href="auth.html" class="nav-link" style="color:rgba(255,255,255,.6);border:1px solid rgba(255,255,255,.15);padding:5px 10px;">Sign In</a>
-    <a href="auth.html" class="nav-link nav-cta">Sign Up Free →</a>
+    <a href="#why" class="nav-link">Why It's Different</a>
+    <a href="#features" class="nav-link">Features</a>
+    <a href="#profiles" class="nav-link">Who's It For</a>
+    <a href="showcase.html" class="nav-link" style="color:var(--gold);">📊 Live Demo</a>
+    <a href="auth.html" class="nav-pill nav-pill-ghost">Sign In</a>
+    <a href="auth.html" class="nav-pill">Get Started →</a>
   </div>
 </nav>
 
-<!-- ═══════════ HERO ════════════════════════════════════════ -->
+<!-- ══════════ HERO ══════════════════════════════════ -->
 <section class="hero">
-
-  <!-- LEFT: newspaper masthead -->
   <div class="hero-left">
-    <div class="hero-dateline">
-      <span id="dateStr">—</span>
-      <span class="hdl"></span>
-      <span>Vol. IV · No. 1</span>
+    <div class="honest-badge">
+      <span class="honest-badge-line"></span>
+      Built by a student. <em>Designed for everyone.</em>
+      <span class="honest-badge-line"></span>
     </div>
-    <div class="hero-kicker">AI-Powered Bookkeeping &amp; Audit Tools</div>
-    <h1 class="hero-h1">Your books.<br><em>Audit-ready</em><br>in 60 seconds.</h1>
-    <p class="hero-deck">Connect your bank or upload any file. LedgerAI generates GAAP journal entries, audit working papers, trial balance, P&amp;L, bank reconciliation, and AI-written management memos — instantly.</p>
-    <div class="hero-btns">
-      <a href="auth.html" class="btn-ink" style="background:var(--red);color:white;">Sign Up Free →</a>
-      <a href="app.html" class="btn-ink">Launch App →</a>
-      <div style="position:relative;">
-        <button class="btn-outline" id="dlBtn" onclick="toggleDrop('dlDrop')">⬇ Sample Data ▾</button>
-        <div class="drop" id="dlDrop">
-          <button class="drop-opt" onclick="dl('standard');toggleDrop('dlDrop')">Standard Format</button>
-          <button class="drop-opt" onclick="dl('bank');toggleDrop('dlDrop')">Bank Statement (RBC)</button>
-          <button class="drop-opt" onclick="dl('qb');toggleDrop('dlDrop')">QuickBooks Export</button>
+
+    <h1 class="hero-h1">
+      Your finances.<br>
+      <span class="line-italic">Finally readable.</span><br>
+      <span class="line-faint">By anyone.</span>
+    </h1>
+
+    <p class="hero-deck">
+      Not QuickBooks. Not Xero. <strong>Something built from scratch by a 3rd-year accounting student</strong> who was tired of every finance tool feeling like it was designed to confuse you — and then charge $80/month for the privilege.
+    </p>
+
+    <div class="hero-actions">
+      <a href="auth.html" class="btn-primary">Start Free — No Card Required →</a>
+      <a href="app.html" class="btn-secondary">Open Demo App</a>
+      <div class="dropdown-wrap">
+        <button class="btn-secondary" id="dlBtn" onclick="toggleDropdown('dlMenu')">⬇ Sample Data ▾</button>
+        <div class="dropdown-menu" id="dlMenu">
+          <button class="dm-option" onclick="dl('standard');toggleDropdown('dlMenu')">Standard Format (.csv)</button>
+          <button class="dm-option" onclick="dl('bank');toggleDropdown('dlMenu')">Bank Statement — RBC Format</button>
+          <button class="dm-option" onclick="dl('qb');toggleDropdown('dlMenu')">QuickBooks Export</button>
         </div>
       </div>
     </div>
-    <div class="hero-stats">
-      <div class="hs"><div class="hs-n">11</div><div class="hs-l">Expense Categories</div></div>
-      <div class="hs"><div class="hs-n" style="color:var(--red);">GAAP</div><div class="hs-l">Journal Entry Standard</div></div>
-      <div class="hs"><div class="hs-n">5+</div><div class="hs-l">Financial Reports</div></div>
-      <div class="hs"><div class="hs-n" style="color:var(--muted);">0</div><div class="hs-l">Login Required</div></div>
+
+    <div class="social-proof">
+      <div class="sp-item">
+        <div class="sp-num">169</div>
+        <div class="sp-label">Transactions in live demo</div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-num" style="color:var(--red);">GAAP</div>
+        <div class="sp-label">Journal entry standard</div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-num">0</div>
+        <div class="sp-label">Fees to start</div>
+      </div>
     </div>
   </div>
 
-  <!-- RIGHT: fully readable light-theme app preview -->
   <div class="hero-right">
-    <div class="app-chrome">
-      <span class="chrome-dot" style="background:#ff5f57"></span>
-      <span class="chrome-dot" style="background:#febc2e"></span>
-      <span class="chrome-dot" style="background:#28c840"></span>
-      <div class="chrome-url">ledgerai/app.html</div>
-      <span class="chrome-label">Live Preview</span>
+    <!-- AI working indicator -->
+    <div class="ai-indicator">
+      <div class="ai-dot"></div>
+      Claude AI categorizing
     </div>
-    <div class="app-topbar">
-      <div class="app-logo"><span class="app-logo-dot"></span>Ledger<em>AI</em></div>
-      <div class="app-period">January 2024</div>
+
+    <div class="window-chrome">
+      <span class="wc-dot" style="background:#ff5f57"></span>
+      <span class="wc-dot" style="background:#febc2e"></span>
+      <span class="wc-dot" style="background:#28c840"></span>
+      <div class="wc-url">ledger-ai.vercel.app/app</div>
     </div>
-    <div class="app-body">
-      <div class="app-sidebar">
-        <div class="app-nav-section">
-          <div class="app-nav-lbl">Navigation</div>
-          <div class="app-nav-item active"><span class="ni">📊</span>Dashboard</div>
-          <div class="app-nav-item"><span class="ni">📋</span>Transactions</div>
-          <div class="app-nav-item"><span class="ni">⚖️</span>Trial Balance</div>
-          <div class="app-nav-item"><span class="ni">⚠️</span>Flagged <span class="nbadge">7</span></div>
-        </div>
-        <div class="app-nav-section">
-          <div class="app-nav-lbl">Pro Tools</div>
-          <div class="app-nav-item"><span class="ni">📄</span>Working Papers</div>
-          <div class="app-nav-item"><span class="ni">✍️</span>AI Memos</div>
-          <div class="app-nav-item"><span class="ni">📈</span>P&amp;L</div>
-          <div class="app-nav-item"><span class="ni">🔗</span>Reconcile</div>
-        </div>
+
+    <div class="mini-topbar">
+      <div class="mt-logo"><span class="mt-dot"></span>LedgerAI</div>
+      <div class="mt-period">January 2024 · Northgate Creative</div>
+    </div>
+
+    <div class="mini-body">
+      <div class="mini-sidebar">
+        <div class="mini-nav-lbl">Business</div>
+        <div class="mini-nav-item active">📊 Dashboard</div>
+        <div class="mini-nav-item">📋 Transactions</div>
+        <div class="mini-nav-item">⚖️ Trial Balance</div>
+        <div class="mini-nav-item">📈 P&amp;L</div>
+        <div class="mini-nav-item">🔗 Reconcile</div>
+        <div class="mini-nav-item">⚠️ Flagged <span class="badge">10</span></div>
+        <div class="mini-nav-item">📄 Working Papers</div>
+        <div class="mini-nav-item">✍️ AI Memo</div>
       </div>
-      <div class="app-main">
-        <div class="stat-row-p">
-          <div class="stat-p">
-            <div class="stat-p-eye">Total Expenses</div>
-            <div class="stat-p-val red">$62,481</div>
+
+      <div class="mini-main">
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <div class="ms-eye">Total Expenses</div>
+            <div class="ms-val red">$54,284</div>
           </div>
-          <div class="stat-p">
-            <div class="stat-p-eye">Transactions</div>
-            <div class="stat-p-val gold">32</div>
+          <div class="mini-stat">
+            <div class="ms-eye">Transactions</div>
+            <div class="ms-val">169</div>
           </div>
-          <div class="stat-p">
-            <div class="stat-p-eye">Trial Balance</div>
-            <div class="stat-p-val green">✓ Bal.</div>
+          <div class="mini-stat">
+            <div class="ms-eye">Flagged</div>
+            <div class="ms-val gold">10</div>
           </div>
-          <div class="stat-p">
-            <div class="stat-p-eye">Flagged</div>
-            <div class="stat-p-val">7</div>
+          <div class="mini-stat">
+            <div class="ms-eye">Trial Balance</div>
+            <div class="ms-val green">✓ Balanced</div>
           </div>
         </div>
-        <div class="chart-area">
-          <div>
-            <div class="ca-label">Spending by Category <span class="cursor"></span></div>
-            <div class="chart-bars" id="appBars"></div>
-          </div>
-          <div class="txn-list" id="appTxns"></div>
+
+        <div class="mini-content">
+          <div class="mc-label">Spending by Category</div>
+          <div class="mc-bars" id="miniBars"></div>
         </div>
-        <div class="je-strip">
-          <div class="je-strip-lbl">Journal Entry — AI Generated</div>
-          <div class="je-strip-dr">Dr. 6000 Salaries &amp; Wages Expense &nbsp;&nbsp; $12,500.00</div>
-          <div class="je-strip-cr">Cr. 1000 Cash / Checking Account &nbsp;&nbsp;&nbsp; $12,500.00</div>
-          <div class="je-strip-note">ADP Payroll · Also debit 6010 / credit 2200 for payroll taxes · Trial Balance: ✓ Balanced</div>
+
+        <div class="ai-strip">
+          <div class="ai-strip-lbl">⚡ Claude AI — Auto-Categorizing</div>
+          <div class="ai-txn">
+            <span>ADP Payroll Processing</span>
+            <span class="ai-txn-cat ai-done">✓ Payroll</span>
+          </div>
+          <div class="ai-txn">
+            <span>Google Ads Q1 Campaign</span>
+            <span class="ai-txn-cat ai-done">✓ Advertising</span>
+          </div>
+          <div class="ai-txn">
+            <span>Jane Smith — Invoice 1041</span>
+            <span class="ai-txn-cat ai-pending">⟳ Analyzing…</span>
+          </div>
         </div>
       </div>
     </div>
   </div>
 </section>
 
-<!-- TICKER -->
-<div class="ticker"><div class="t-track" id="tickerTrack"></div></div>
-
-<!-- ═══════════ NEWSPAPER: ACCOUNTING CONCEPTS ═════════════ -->
-<section class="section-light" id="accounting">
-  <div class="np-masthead">
-    <div class="np-name">The Accounting Standard</div>
-    <div class="np-meta">LedgerAI Edition · GAAP Double-Entry<br>Audit-ready output from any file</div>
-  </div>
-  <div class="np-rule"></div>
-  <div style="height:1px;background:var(--cream);margin:2px 0 0;"></div>
-  <div class="np-cols">
-    <div class="np-col r">
-      <div class="np-k">Double-Entry Bookkeeping</div>
-      <div class="np-hd">Every transaction debits one account and credits another.</div>
-      <div class="np-hr"></div>
-      <div class="np-bd">
-        <p>LedgerAI applies real GAAP rules. Every uploaded transaction generates a journal entry using a numbered Chart of Accounts — 1xxx Assets through 6xxx Expenses.</p>
-        <p>The trial balance verifies total debits equal total credits. If they don't balance, the system reports the exact dollar difference.</p>
-      </div>
-    </div>
-    <div class="np-div"></div>
-    <div class="np-col r d1">
-      <div class="np-k">Audit Working Papers <span class="badge-new">New</span></div>
-      <div class="np-hd">Lead schedules, PBC lists, and prior-period variance — generated automatically.</div>
-      <div class="np-hr"></div>
-      <div class="np-bd">
-        <p>Upload a client's GL or bank export. LedgerAI generates formatted lead schedules and PBC checklists — the exact documents audit firms build manually at the start of an engagement.</p>
-        <p>Significant variances (configurable %) are flagged automatically. Export to PDF for the working paper binder.</p>
-      </div>
-    </div>
-    <div class="np-div"></div>
-    <div class="np-col r d2">
-      <div class="np-k">AI Memo Drafting <span class="badge-new">New</span></div>
-      <div class="np-hd">Month-end client updates and management letters — written by AI.</div>
-      <div class="np-hr"></div>
-      <div class="np-bd">
-        <p>LedgerAI reads your financial data and drafts client-ready month-end summaries, CFO variance memos, management letter bullets, and audit planning notes.</p>
-        <p>Review, edit, and send. The repetitive writing is done.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- NUMBAND -->
-<div class="numband">
-  <div class="nb r"><div class="nb-n">11</div><div class="nb-l">Expense Categories</div></div>
-  <div class="nb r d1"><div class="nb-n" style="color:#c8a050;">GAAP</div><div class="nb-l">Journal Entry Standard</div></div>
-  <div class="nb r d2"><div class="nb-n">5+</div><div class="nb-l">Financial Reports</div></div>
-  <div class="nb r d3"><div class="nb-n" style="color:rgba(255,255,255,.18);">0</div><div class="nb-l">Login Required</div></div>
+<!-- ══════════ TICKER ══════════════════════════════ -->
+<div class="ticker" aria-hidden="true">
+  <div class="ticker-track" id="tickerTrack"></div>
 </div>
 
-<!-- ═══════════ WORKING PAPERS DEMO ═════════════════════════ -->
-<div class="demo-grid" id="workingpapers">
-  <div class="demo-left" style="background:var(--paper);">
-    <div class="sec-eyebrow r">Feature 1 — Audit Working Papers</div>
-    <h2 class="sec-h2 r">Documents audit<br>firms actually use.</h2>
-    <p class="r" style="font-size:13.5px;line-height:1.85;color:var(--muted);margin:14px 0 8px;">Upload a client's GL export. LedgerAI generates the documents you'd spend hours building manually — lead schedules, PBC lists, and prior-period variance analysis.</p>
-    <div class="checklist r">
-      <div class="cl-item"><span class="cl-ck">✓</span>Lead schedule by account — current vs prior period</div>
-      <div class="cl-item"><span class="cl-ck">✓</span>Significant variances flagged (&gt;15% or &gt;$5,000)</div>
-      <div class="cl-item"><span class="cl-ck">✓</span>PBC checklist with outstanding items auto-populated</div>
-      <div class="cl-item"><span class="cl-ck">✓</span>Export to PDF for working paper binder</div>
-      <div class="cl-item"><span class="cl-ck">✓</span>W/P references in standard binder format (LS-01, PBC-01)</div>
-    </div>
-  </div>
-  <div class="demo-right">
-    <div class="wp-card r">
-      <div class="wpc-head">
-        <span>W/P Ref: LS-01 — Lead Schedule</span>
-        <span>Jan 2024</span>
-      </div>
-      <div class="wpc-body">
-        <div class="wpc-section">
-          <div class="wpc-sec-lbl">Account &nbsp;·&nbsp; Current &nbsp;·&nbsp; Prior &nbsp;·&nbsp; Var%</div>
-          <div class="wpr"><span class="wpr-lbl">Salaries &amp; Wages</span><span class="wpr-curr">$37,500</span><span class="wpr-prior">$36,000</span><span class="wpr-var dn">+4.2%</span></div>
-          <div class="wpr"><span class="wpr-lbl">Advertising &amp; Marketing</span><span class="wpr-curr">$8,200</span><span class="wpr-prior">$4,400</span><span class="wpr-var up">+86%</span></div>
-          <div class="wpc-flag">⚑ Significant variance — Advertising +86.4%. Obtain management explanation.</div>
-          <div class="wpr"><span class="wpr-lbl">Contractor Services</span><span class="wpr-curr">$6,200</span><span class="wpr-prior">$7,100</span><span class="wpr-var dn">−12.7%</span></div>
-          <div class="wpr"><span class="wpr-lbl">Software &amp; Subscriptions</span><span class="wpr-curr">$1,840</span><span class="wpr-prior">$1,780</span><span class="wpr-var dn">+3.4%</span></div>
-          <div class="wpr"><span class="wpr-lbl">Meals &amp; Entertainment</span><span class="wpr-curr">$696</span><span class="wpr-prior">$410</span><span class="wpr-var up">+69.8%</span></div>
-          <div class="wpc-flag">⚑ M&amp;E: only 50% deductible — verify receipts on file.</div>
+<!-- ══════════ THE HONEST STORY ═══════════════════ -->
+<section class="story-section" id="why">
+  <div class="container">
+    <div class="story-grid">
+      <div>
+        <div class="story-eyebrow reveal">The honest version</div>
+        <h2 class="story-h2 reveal d1">
+          Every accounting tool <em>pretends</em> to be simple.<br>
+          None of them are.
+        </h2>
+        <div class="story-body reveal d2">
+          <p>QuickBooks costs $180/month, has 14 onboarding screens, and still requires you to know the difference between a journal entry and a ledger. Xero is barely different. Wave is "free" until you need anything that actually matters.</p>
+          <p>I built LedgerAI because I'm an accounting student who <strong>actually uses these tools professionally</strong> — and I was embarrassed that my clients, my family, and my friends couldn't use any of them without calling me first.</p>
+          <p>The goal: drop a CSV, get reports. <strong>Zero accounting knowledge required.</strong> The AI handles everything else.</p>
         </div>
       </div>
-      <div class="wpc-foot"><span>Prepared: LedgerAI</span><span>Trial Balance: ✓ Balanced</span></div>
+      <div class="reveal d2">
+        <div class="quote-card">
+          <div class="quote-text">
+            "I spent my audit internship watching partners manually generate the same working papers <em>every single engagement.</em> A $400/hour professional doing copy-paste work. I built the tool that fixes that."
+          </div>
+          <div class="quote-attr">
+            <strong>Zohaib Ghani</strong>
+            BBA Accounting · Wilfrid Laurier University · Audit Intern, Muhammad Nusrullah CGA
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ COMPARISON ════════════════════════ -->
+<section class="diff-section" id="compare">
+  <div class="container">
+    <div class="diff-header reveal">
+      <div class="diff-eyebrow">Honest comparison</div>
+      <h2 class="diff-h2">Why not just use <em>QuickBooks?</em></h2>
+    </div>
+
+    <table class="comparison-table reveal d1">
+      <thead class="ct-head">
+        <tr>
+          <th>Feature</th>
+          <th class="th-us">LedgerAI</th>
+          <th class="th-them">QuickBooks</th>
+          <th class="th-them">Wave / FreshBooks</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td class="ct-feature">Free to use<span class="ct-sub">No credit card, no trial timer</span></td>
+          <td class="ct-us-col"><span class="ct-yes">✓</span></td>
+          <td><span class="ct-no">✗</span></td>
+          <td><span class="ct-partial">Partial</span></td>
+        </tr>
+        <tr>
+          <td class="ct-feature">AI categorization<span class="ct-sub">Learns from your file's existing patterns</span></td>
+          <td class="ct-us-col"><span class="ct-yes">✓</span></td>
+          <td><span class="ct-partial">Rules-only</span></td>
+          <td><span class="ct-no">✗</span></td>
+        </tr>
+        <tr>
+          <td class="ct-feature">Audit working papers<span class="ct-sub">Lead schedule, PBC checklist, CAS 230</span></td>
+          <td class="ct-us-col"><span class="ct-yes">✓</span></td>
+          <td><span class="ct-no">✗</span></td>
+          <td><span class="ct-no">✗</span></td>
+        </tr>
+        <tr>
+          <td class="ct-feature">AI memo drafting<span class="ct-sub">CFO memos, management letters, audit notes</span></td>
+          <td class="ct-us-col"><span class="ct-yes">✓</span></td>
+          <td><span class="ct-no">✗</span></td>
+          <td><span class="ct-no">✗</span></td>
+        </tr>
+        <tr>
+          <td class="ct-feature">GAAP double-entry engine<span class="ct-sub">Every transaction → journal entry, Dr/Cr</span></td>
+          <td class="ct-us-col"><span class="ct-yes">✓</span></td>
+          <td><span class="ct-yes">✓</span></td>
+          <td><span class="ct-partial">Basic</span></td>
+        </tr>
+        <tr>
+          <td class="ct-feature">Multiple user profiles<span class="ct-sub">Student, Freelancer, Business, Professional</span></td>
+          <td class="ct-us-col"><span class="ct-yes">✓</span></td>
+          <td><span class="ct-no">✗</span></td>
+          <td><span class="ct-no">✗</span></td>
+        </tr>
+        <tr>
+          <td class="ct-feature">Works with any CSV / bank export<span class="ct-sub">QuickBooks, Sage, RBC, TD, Chase, any format</span></td>
+          <td class="ct-us-col"><span class="ct-yes">✓</span></td>
+          <td><span class="ct-partial">Own format only</span></td>
+          <td><span class="ct-partial">Limited</span></td>
+        </tr>
+        <tr>
+          <td class="ct-feature">Monthly cost</td>
+          <td class="ct-us-col" style="font-family:'DM Mono',monospace;font-size:13px;color:var(--green);font-weight:600;">$0</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">$30–180/mo</td>
+          <td style="font-family:'DM Mono',monospace;font-size:12px;color:var(--muted);">$0–$30/mo</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ══════════ FEATURES ═══════════════════════════ -->
+<section class="features-section" id="features">
+  <div class="container">
+    <div class="features-header reveal">
+      <div class="feat-eyebrow">What it does</div>
+      <h2 class="feat-h2">Tools that used to cost<br><em>$400/hour</em> to access.</h2>
+    </div>
+    <div class="feat-grid" id="featGrid"></div>
+  </div>
+</section>
+
+<!-- ══════════ PROFILES ═══════════════════════════ -->
+<section class="profiles-section" id="profiles">
+  <div class="container">
+    <div class="profiles-header reveal">
+      <div class="prof-eyebrow">One engine. Four experiences.</div>
+      <h2 class="prof-h2">Pick your <em>profile.</em></h2>
+      <p class="prof-sub">The same powerful engine underneath — but the interface adapts to exactly what you need. No accountant required.</p>
+    </div>
+    <div class="profiles-grid reveal d1" id="profilesGrid"></div>
+  </div>
+</section>
+
+<!-- ══════════ NUMBERS ════════════════════════════ -->
+<div class="numbers-band">
+  <div class="nb-grid">
+    <div class="nb-cell reveal">
+      <div class="nb-num">169</div>
+      <div class="nb-label">Transactions in the live demo</div>
+    </div>
+    <div class="nb-cell reveal d1">
+      <div class="nb-num">10</div>
+      <div class="nb-label">Audit flags auto-detected</div>
+    </div>
+    <div class="nb-cell reveal d2">
+      <div class="nb-num">7</div>
+      <div class="nb-label">Report types generated instantly</div>
+    </div>
+    <div class="nb-cell reveal d3">
+      <div class="nb-num">0</div>
+      <div class="nb-label">Setup required to start</div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════ AI MEMO DEMO ═════════════════════════════════ -->
-<section class="section-dark">
-  <div class="sec-eyebrow dim r">Feature 4 — AI Memo Drafting</div>
-  <h2 class="sec-h2 light r">Client updates.<br><em>Written for you.</em></h2>
-  <p class="sec-body light r" style="max-width:520px;">Claude AI reads your financial data and drafts the memos accountants write every month. You review, edit, send. Four memo types included:</p>
-  <div class="memo-grid r">
-    <div class="mc">
-      <div class="mc-type">Month-End Client Summary</div>
-      <div class="mc-text">"January operating expenses totalled $62,481, an increase of $4,320 (7.4%) vs December. The primary driver was a significant increase in Advertising spend ($8,200 vs $4,400 prior month), which warrants review. Payroll remained consistent at $37,500. Trial balance is verified balanced."</div>
-      <div class="mc-tag">→ Client email ready</div>
-    </div>
-    <div class="mc">
-      <div class="mc-type">CFO Variance Memo</div>
-      <div class="mc-text">"Key variances: (1) Advertising +86% vs prior — management explanation required for working papers. (2) M&amp;E at $696 is 50% deductible; receipts required. (3) Contractor payments to Jane Smith ($1,800) and Sara Okonkwo ($2,200) — confirm 1099 tracking current."</div>
-      <div class="mc-tag">→ Internal memo ready</div>
-    </div>
-    <div class="mc">
-      <div class="mc-type">Management Letter Bullets</div>
-      <div class="mc-text">"• Advertising expense increased 86% without documented approval — recommend formal spend authorization policy. • M&amp;E receipt policy should require digital filing within 5 business days. • Contractor agreements on file for all 1099 payees."</div>
-      <div class="mc-tag">→ Management letter ready</div>
-    </div>
-    <div class="mc">
-      <div class="mc-type">Audit Planning Note</div>
-      <div class="mc-text">"Significant risk areas: (1) Advertising variance exceeds 15% threshold — set as significant for testing. (2) Payroll $37,500 — confirm register reconciliation. (3) No revenue recorded — confirm completeness of revenue recognition or note timing."</div>
-      <div class="mc-tag">→ Audit file ready</div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════ BANK CONNECTION ══════════════════════════════ -->
-<div class="demo-grid" id="bank">
-  <div class="demo-left" style="background:var(--cream);">
-    <div class="sec-eyebrow r" style="color:var(--blue);">
-      <span style="display:inline-flex;align-items:center;gap:10px;"><span style="width:20px;height:2px;background:var(--blue);display:block;"></span>Bank Connection — Powered by Plaid</span>
-    </div>
-    <h2 class="sec-h2 r">Connect your bank.<br>No CSV required.</h2>
-    <p class="r" style="font-size:13.5px;line-height:1.85;color:var(--muted);margin:14px 0 0;">The same technology used by QuickBooks, Wave, and Mint. Click Connect Bank, log in through your bank's portal, and transactions stream directly in.</p>
-    <div class="plaid-steps r">
-      <div class="ps"><span class="ps-n">01</span><span class="ps-t">Click "Connect Bank" in the app — a secure Plaid popup opens</span></div>
-      <div class="ps"><span class="ps-n">02</span><span class="ps-t">Search for your bank — RBC, TD, Scotiabank, Chase, 12,000+ supported</span></div>
-      <div class="ps"><span class="ps-n">03</span><span class="ps-t">Log in through your bank's own interface — credentials never touch LedgerAI</span></div>
-      <div class="ps"><span class="ps-n">04</span><span class="ps-t">Transactions load automatically and AI categorization runs immediately</span></div>
-    </div>
-  </div>
-  <div class="demo-right" style="background:var(--paper);">
-    <div class="plaid-card r">
-      <div class="plaid-card-title">🔗 Connected Accounts</div>
-      <div class="bank-row">
-        <div class="bank-icon" style="background:#e8f0fe;">🏦</div>
-        <div><div class="bank-name">RBC Royal Bank</div><div class="bank-txns">Business Chequing · 47 transactions</div></div>
-        <div class="bank-status">✓ Synced</div>
-      </div>
-      <div class="bank-row">
-        <div class="bank-icon" style="background:#e8f5e9;">🏛️</div>
-        <div><div class="bank-name">TD Bank</div><div class="bank-txns">Business Savings · 12 transactions</div></div>
-        <div class="bank-status">✓ Synced</div>
-      </div>
-      <div class="bank-row" style="opacity:.4;">
-        <div class="bank-icon" style="background:#f5f5f5;">＋</div>
-        <div><div class="bank-name" style="color:var(--muted);">Add another account…</div></div>
-      </div>
-      <div class="plaid-note">🔒 Credentials never stored by LedgerAI<br>Powered by Plaid · 256-bit encryption · Read-only access</div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══════════ FEATURES GRID ════════════════════════════════ -->
-<section class="section-cream">
-  <div class="r" style="display:flex;justify-content:space-between;align-items:flex-end;padding-bottom:20px;border-bottom:1px solid var(--rule);margin-bottom:0;">
-    <div>
-      <div class="sec-eyebrow" style="margin-bottom:10px;">Full Feature Set</div>
-      <h2 class="sec-h2" style="margin-bottom:0;">Everything a<br><em>firm needs.</em></h2>
-    </div>
-    <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);text-align:right;line-height:2;">10 Features · GAAP-Compliant<br>No Login · No Setup</div>
-  </div>
-  <div class="feat-grid">
-    <div class="fc dark r"><div class="fc-bar" style="background:var(--red);"></div><div class="fc-num">01</div><div class="fc-icon">📄</div><div class="fc-name">Audit Working Papers <span class="badge-new" style="font-size:7px;">New</span></div><div class="fc-desc">Auto-generates lead schedules, PBC lists, and prior-period variance analysis. Flags significant movements. PDF export.</div></div>
-    <div class="fc dark r d1"><div class="fc-bar" style="background:var(--gold);"></div><div class="fc-num">02</div><div class="fc-icon">✍️</div><div class="fc-name">AI Memo Drafting <span class="badge-new" style="font-size:7px;">New</span></div><div class="fc-desc">Claude AI drafts month-end client summaries, CFO memos, management letter bullets, and audit planning notes from your data.</div></div>
-    <div class="fc r d2"><div class="fc-bar" style="background:var(--blue);"></div><div class="fc-num">03</div><div class="fc-icon">🏦</div><div class="fc-name">Live Bank Connection</div><div class="fc-desc">Plaid integration pulls transactions from 12,000+ banks. No CSV needed. Same technology as QuickBooks and Wave.</div></div>
-    <div class="fc r d3"><div class="fc-bar" style="background:var(--green);"></div><div class="fc-num">04</div><div class="fc-icon">⚡</div><div class="fc-name">AI Categorization</div><div class="fc-desc">Claude API assigns expense categories with IRS compliance flags. Learns from existing categorizations. Manual override available.</div></div>
-    <div class="fc r"><div class="fc-bar" style="background:var(--red);"></div><div class="fc-num">05</div><div class="fc-icon">⚖️</div><div class="fc-name">Trial Balance</div><div class="fc-desc">Verifies total debits equal total credits. Reports the exact dollar difference if out of balance. CSV + PDF export.</div></div>
-    <div class="fc r d1"><div class="fc-bar" style="background:var(--gold);"></div><div class="fc-num">06</div><div class="fc-icon">📈</div><div class="fc-name">P&amp;L Statement</div><div class="fc-desc">Revenue → Gross Profit → Operating Expenses → Net Income. Net margin auto-calculated. Multi-period YTD.</div></div>
-    <div class="fc r d2"><div class="fc-bar" style="background:var(--blue);"></div><div class="fc-num">07</div><div class="fc-icon">🔗</div><div class="fc-name">Bank Reconciliation</div><div class="fc-desc">Fuzzy-matching algorithm reconciles by amount, date, and description. Works with uploaded files or live Plaid data.</div></div>
-    <div class="fc r d3"><div class="fc-bar" style="background:var(--green);"></div><div class="fc-num">08</div><div class="fc-icon">📋</div><div class="fc-name">Immutable Audit Trail</div><div class="fc-desc">Every edit, deletion, AI action, and export logged with timestamp and before/after values. Mirrors CAS 230 requirements.</div></div>
-  </div>
-</section>
-
-<!-- ═══════════ FOUNDER ═══════════════════════════════════════ -->
-<section class="section-light">
-  <div class="founder-in">
-    <div class="f-av">ZG</div>
-    <div>
-      <div class="f-lbl">Built by</div>
-      <div class="f-name">Zohaib Ghani</div>
-      <div class="f-role">BBA Accounting · Wilfrid Laurier University (Lazaridis School) · Pursuing CPA, 2027</div>
-      <p class="f-bio">Zohaib is a third-year accounting student at Laurier's Lazaridis School. He built LedgerAI from two direct experiences: an Audit Internship at Muhammad Nusrullah CGA — reviewing risk assessment frameworks, managing compliance documentation, and analyzing engagement files for a retail dealership and a medical clinic — and a prior bookkeeping role at Pesticon Pest Control, processing and reconciling payments manually. The inefficiencies he observed firsthand are exactly what this tool addresses: automating the grunt work without sacrificing the standards that make output auditable.</p>
-      <div class="f-links">
-        <a href="mailto:zohaibghani556@gmail.com" class="f-link">zohaibghani556@gmail.com</a>
-        <span class="f-link" style="cursor:default;">647-939-7278</span>
-        <span class="f-link" style="cursor:default;">Vaughan, ON</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ═══════════ CTA ════════════════════════════════════════════ -->
-<section class="section-dark">
-  <div class="cta-inner">
-    <div class="sec-eyebrow dim r" style="justify-content:center;">Ready to start?</div>
-    <h2 class="sec-h2 light r" style="text-align:center;font-size:clamp(36px,5vw,60px);">Open the app.<br>Connect your bank.<br><em>60 seconds.</em></h2>
-    <p class="sec-body light r" style="text-align:center;margin:0 auto;">No login. No setup. Connect a bank account or upload a CSV. GAAP-compliant output immediately.</p>
-    <div class="cta-btns r">
-      <a href="app.html" class="btn-paper">Launch LedgerAI →</a>
-      <div style="position:relative;">
-        <button class="btn-outline-light" id="dlBtn2" onclick="toggleDrop('dlDrop2')">⬇ Sample Data ▾</button>
-        <div class="drop" id="dlDrop2" style="bottom:calc(100% + 6px);top:auto;">
-          <button class="drop-opt" onclick="dl('standard');toggleDrop('dlDrop2')">Standard Format</button>
-          <button class="drop-opt" onclick="dl('bank');toggleDrop('dlDrop2')">Bank Statement (RBC)</button>
-          <button class="drop-opt" onclick="dl('qb');toggleDrop('dlDrop2')">QuickBooks Export</button>
+<!-- ══════════ FOUNDER ════════════════════════════ -->
+<section class="founder-section" id="founder">
+  <div class="container">
+    <div class="founder-grid">
+      <div class="founder-left reveal">
+        <div class="founder-avatar">ZG</div>
+        <div class="founder-name">Zohaib Ghani</div>
+        <div class="founder-title">
+          BBA Accounting<br>
+          Wilfrid Laurier University<br>
+          Lazaridis School of Business<br>
+          Pursuing CPA, 2027
+        </div>
+        <div class="founder-links">
+          <a href="mailto:zohaibghani556@gmail.com" class="founder-link">✉ zohaibghani556@gmail.com</a>
+          <span class="founder-link" style="cursor:default;">📞 647-939-7278</span>
+          <span class="founder-link" style="cursor:default;">📍 Vaughan, ON</span>
+          <a href="https://github.com/zohaibghani556-web/LedgerAi" target="_blank" class="founder-link">⌥ GitHub Repository</a>
         </div>
       </div>
+
+      <div class="founder-right">
+        <div class="founder-story-lbl reveal">The why</div>
+        <h3 class="founder-story-h3 reveal d1">
+          I'm a 3rd-year accounting student<br>
+          with <em>zero software background.</em><br>
+          This is what I built anyway.
+        </h3>
+        <div class="founder-story-body reveal d2">
+          <p>I'm not a developer. I've never taken a CS course. I built LedgerAI entirely because I was frustrated — frustrated at my audit internship watching senior accountants manually compile the same working papers every engagement, and frustrated at my bookkeeping job entering the same transactions into a spreadsheet that could have been automated.</p>
+          <p><strong>The tools that exist are either too simple or too expensive.</strong> QuickBooks for a freelancer is like buying a forklift to move a couch. Wave and FreshBooks are too basic to actually replace an accountant. Nothing was built for the person who is serious about their finances but doesn't have a CPA designation.</p>
+          <p>So I used every tool available — Claude AI, modern web APIs, hours of accounting textbooks — and built the gap that exists in this market. <strong>Audit-grade output. Zero accounting background required.</strong></p>
+        </div>
+
+        <div class="experience-cards reveal d3">
+          <div class="exp-card" style="--exp-color: var(--blue);">
+            <div class="exp-role">Audit Intern</div>
+            <div class="exp-where">Muhammad Nusrullah CGA · 2025</div>
+            <div class="exp-desc">Reviewed risk assessment frameworks, managed compliance documentation, analyzed engagement files for a retail auto dealership and a medical clinic. The working papers module in LedgerAI directly mirrors what I built manually on every engagement.</div>
+          </div>
+          <div class="exp-card" style="--exp-color: var(--green);">
+            <div class="exp-role">Bookkeeper</div>
+            <div class="exp-where">Pesticon Pest Control</div>
+            <div class="exp-desc">Processed and reconciled payments manually. Watched hours disappear to work that a computer should handle. The bank reconciliation and AI categorization features exist specifically because of this job.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ DEMO CTA ════════════════════════════ -->
+<section class="demo-section">
+  <div class="container">
+    <div class="demo-inner">
+      <div class="demo-left-copy">
+        <div class="demo-eyebrow reveal">See it live</div>
+        <h2 class="demo-h2 reveal d1">
+          169 real transactions.<br>
+          <em>Every report. Instantly.</em>
+        </h2>
+        <p class="demo-body reveal d2">The showcase loads a full Q1 general ledger for a fictional marketing agency — 169 transactions, 10 audit flags, $54K in categorized expenses, and every report LedgerAI generates. No sign-up required.</p>
+        <div class="demo-actions reveal d3">
+          <a href="showcase.html" class="btn-primary">View Live Showcase →</a>
+          <div class="dropdown-wrap">
+            <button class="btn-secondary" id="dlBtn2" onclick="toggleDropdown('dlMenu2')">⬇ Download Sample ▾</button>
+            <div class="dropdown-menu" id="dlMenu2">
+              <button class="dm-option" onclick="dl('standard');toggleDropdown('dlMenu2')">Standard Format</button>
+              <button class="dm-option" onclick="dl('bank');toggleDropdown('dlMenu2')">Bank Statement — RBC</button>
+              <button class="dm-option" onclick="dl('qb');toggleDropdown('dlMenu2')">QuickBooks Export</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-stats reveal d2">
+        <div class="ds-item">
+          <div class="ds-icon">⚡</div>
+          <div class="ds-label"><strong>AI categorizes every transaction</strong> — learns from your file's existing patterns to improve accuracy as it goes.</div>
+        </div>
+        <div class="ds-item">
+          <div class="ds-icon">📄</div>
+          <div class="ds-label"><strong>Audit working papers generated automatically</strong> — lead schedule, trial balance, PBC checklist, variance analysis. CAS 230 compliant.</div>
+        </div>
+        <div class="ds-item">
+          <div class="ds-icon">✍️</div>
+          <div class="ds-label"><strong>AI writes the CFO memo</strong> — month-end summary, variance memo, management letter. Reads your data, drafts the document.</div>
+        </div>
+        <div class="ds-item">
+          <div class="ds-icon">🏦</div>
+          <div class="ds-label"><strong>Connect a real bank account</strong> via Plaid — the same API QuickBooks uses. No CSV required.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════ FINAL CTA ═══════════════════════════ -->
+<section class="final-cta">
+  <div class="container">
+    <div class="fc-eyebrow">Ready?</div>
+    <h2 class="fc-h2">Your books, <em>audit-ready</em>,<br>in 60 seconds.</h2>
+    <p class="fc-sub">Upload a file, connect your bank, or add transactions manually. LedgerAI generates every report instantly. Free, forever.</p>
+    <div class="fc-actions">
+      <a href="auth.html" class="btn-white">Create Free Account →</a>
+      <a href="app.html" class="btn-ghost-white">Open Demo Without Signing Up</a>
+    </div>
+    <div class="trust-note">
+      <span>No credit card</span>
+      <span class="trust-divider"></span>
+      <span>No setup</span>
+      <span class="trust-divider"></span>
+      <span>Data stays in your browser</span>
+      <span class="trust-divider"></span>
+      <span>Open source on GitHub</span>
     </div>
   </div>
 </section>
 
 <footer>
-  <div class="ft-logo">Ledger<em>AI</em></div>
-  <div class="ft-note">© 2024 Zohaib Ghani · Wilfrid Laurier University · Demo purposes only</div>
+  <div class="ft-logo">LedgerAI</div>
+  <div class="ft-note">© 2025 Zohaib Ghani · Wilfrid Laurier University · Demo purposes only</div>
   <div class="ft-links">
     <a href="app.html" class="ft-lnk">App</a>
-    <a href="#accounting" class="ft-lnk">Accounting</a>
-    <a href="#workingpapers" class="ft-lnk">Working Papers</a>
+    <a href="showcase.html" class="ft-lnk">Showcase</a>
+    <a href="auth.html" class="ft-lnk">Sign Up</a>
+    <a href="https://github.com/zohaibghani556-web/LedgerAi" class="ft-lnk" target="_blank">GitHub</a>
   </div>
 </footer>
 
 <script>
-// Date
-document.getElementById('dateStr').textContent =
-  new Date().toLocaleDateString('en-US',{weekday:'short',year:'numeric',month:'short',day:'numeric'}).toUpperCase();
+// ── Custom cursor ──────────────────────────────────────
+const dot  = document.getElementById('cursorDot');
+const ring = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+(function animate() {
+  rx += (mx - rx) * 0.18;
+  ry += (my - ry) * 0.18;
+  dot.style.left  = mx + 'px'; dot.style.top  = my + 'px';
+  ring.style.left = rx + 'px'; ring.style.top = ry + 'px';
+  requestAnimationFrame(animate);
+})();
 
-// Scroll reveal
-const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.07});
-document.querySelectorAll('.r').forEach(el=>obs.observe(el));
+// ── Nav scroll ─────────────────────────────────────────
+const nav = document.getElementById('nav');
+window.addEventListener('scroll', () => {
+  nav.classList.toggle('scrolled', window.scrollY > 40);
+});
 
-// App preview bars
-const BARS=[
-  {l:'Payroll',p:65,c:'#c0321a',v:'$37,500'},
-  {l:'Advertising',p:20,c:'#1c3d7a',v:'$8,200'},
-  {l:'Contractor',p:12,c:'#a87418',v:'$6,200'},
-  {l:'Software',p:5,c:'#1a5c34',v:'$1,840'},
-  {l:'Other',p:3,c:'#7a7060',v:'$696'},
+// ── Today's date ───────────────────────────────────────
+// (used in hero if needed)
+
+// ── Reveal on scroll ──────────────────────────────────
+const revealObs = new IntersectionObserver(
+  entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); }),
+  { threshold: 0.07 }
+);
+document.querySelectorAll('.reveal').forEach(el => revealObs.observe(el));
+
+// ── Ticker ─────────────────────────────────────────────
+const TICKER_ITEMS = [
+  'GAAP Double-Entry Engine','AI Transaction Categorization','Audit Working Papers',
+  'Lead Schedule W/P Ref: LS-01','AI Memo Drafting','Trial Balance Verification',
+  'P&L Statement','Bank Connection via Plaid','Bank Reconciliation Algorithm',
+  'Cash Flow Classification','Budget vs Actual','Duplicate Detector',
+  'Immutable Audit Trail CAS 230','Multi-Period YTD Reporting','1099 / T4A Contractor Flags',
 ];
-const bc=document.getElementById('appBars');
-BARS.forEach(b=>{
-  const el=document.createElement('div');el.className='cb-row';
-  el.innerHTML=`<span class="cb-lbl">${b.l}</span><div class="cb-track"><div class="cb-fill" style="width:0%;background:${b.c}" data-w="${b.p}"></div></div><span class="cb-val" style="color:${b.c}">${b.v}</span>`;
-  bc.appendChild(el);
+const tt = document.getElementById('tickerTrack');
+[...TICKER_ITEMS,...TICKER_ITEMS].forEach(t => {
+  const s = document.createElement('span');
+  s.className = 'ticker-item' + (t.includes('AI')||t.includes('Audit')||t.includes('Plaid') ? ' hi' : '');
+  s.textContent = t;
+  tt.appendChild(s);
 });
-setTimeout(()=>document.querySelectorAll('.cb-fill').forEach(f=>f.style.width=f.dataset.w+'%'),600);
 
-// App preview transactions
-const TXNS=[
-  {date:'Jan 02',desc:'ADP Payroll Processing',cat:'Payroll',amt:'$12,500'},
-  {date:'Jan 03',desc:'WeWork Office Lease',cat:'Rent',amt:'$3,200'},
-  {date:'Jan 04',desc:'Google Ads Q1 Campaign',cat:'Advertising',amt:'$2,200'},
-  {date:'Jan 06',desc:'Jane Smith — Invoice 1041',cat:'Contractor',amt:'$1,800'},
+// ── Mini hero bars ─────────────────────────────────────
+const BARS = [
+  { l:'Payroll',      p:68, c:'#e86050' },
+  { l:'Advertising',  p:21, c:'#5b8ff9' },
+  { l:'Contractor',   p:14, c:'#c8a040' },
+  { l:'Software',     p:7,  c:'#5ec88a' },
+  { l:'Meals',        p:4,  c:'#a0a0a0' },
 ];
-const tc=document.getElementById('appTxns');
-TXNS.forEach(t=>{
-  const el=document.createElement('div');el.className='txn-row';
-  el.innerHTML=`<span class="txn-date">${t.date}</span><span class="txn-desc">${t.desc}</span><span class="txn-cat">${t.cat}</span><span class="txn-amt">${t.amt}</span>`;
-  tc.appendChild(el);
-});
-
-// Ticker
-const ITEMS=['GAAP Double-Entry Bookkeeping','AI Transaction Categorization','Audit Working Papers','Lead Schedule Generation','AI Memo Drafting','Trial Balance Verification','P&L Statement','Bank Connection via Plaid','Bank Reconciliation','Cash Flow Classification','Budget vs Actual','Duplicate Detection','Immutable Audit Trail CAS 230'];
-const tt=document.getElementById('tickerTrack');
-[...ITEMS,...ITEMS].forEach(t=>{
-  const s=document.createElement('span');
-  s.className='t-item'+(t.includes('Working Papers')||t.includes('Memo')||t.includes('Plaid')?' hi':'');
-  s.textContent=t;tt.appendChild(s);
-});
-
-// Sample data download
-const SAMPLES={
-  standard:{name:'ledgerai-sample.csv',csv:`Date,Description,Amount,Category,Flag\n2024-01-02,ADP Payroll Processing,12500.00,Payroll,none\n2024-01-03,WeWork Office Lease,3200.00,Rent & Facilities,none\n2024-01-04,Google Ads Q1,2200.00,Advertising & Marketing,none\n2024-01-06,Jane Smith Contractor Inv 1041,1800.00,Contractor / Professional Services,none\n2024-01-07,AWS Cloud Services,312.00,Utilities & Hosting,none\n2024-01-10,Client Lunch Capital Grille,284.00,Meals & Entertainment,none\n2024-01-15,ADP Payroll Processing,12500.00,Payroll,none\n2024-01-16,Chase Bank Wire Fee,35.00,Bank & Finance Charges,none\n2024-01-18,Sara Okonkwo Contractor Inv 22,2200.00,Contractor / Professional Services,none\n2024-01-21,Client Dinner Nobu,412.00,Meals & Entertainment,none\n2024-01-29,ADP Payroll Processing,12500.00,Payroll,none`},
-  bank:{name:'ledgerai-bank-rbc.csv',csv:`Transaction Date,Description,Withdrawals,Deposits,Balance\nJan 02/24,ADP PAYROLL 240102,12500.00,,48230.15\nJan 03/24,WEWORK NYC JAN RENT,3200.00,,45030.15\nJan 04/24,GOOGLE ADS 8834421,2200.00,,42830.15\nJan 07/24,AWS CLOUD SVCS,312.00,,40630.15\nJan 10/24,VISA - THE CAPITAL GRILLE,284.00,,40346.15\nJan 15/24,ADP PAYROLL 240115,12500.00,,27846.15\nJan 16/24,WIRE FEE,35.00,,27811.15\nJan 21/24,VISA - NOBU RESTAURANT,412.00,,27399.15\nJan 29/24,ADP PAYROLL 240129,12500.00,,14899.15\nJan 15/24,CLIENT PAYMENT ACME CORP,,15000.00,29899.15`},
-  qb:{name:'ledgerai-quickbooks.csv',csv:`Num,Date,Name,Memo,Account,Debit,Credit\n1001,01/02/2024,ADP Payroll,Jan payroll,Salaries,12500.00,\n1002,01/03/2024,WeWork,Office lease,Rent,3200.00,\n1003,01/04/2024,Google,Q1 ads,Advertising,2200.00,\n1005,01/06/2024,Jane Smith,Contractor Inv 1041,Contractor,1800.00,\n1006,01/07/2024,AWS,Cloud hosting,Technology,312.00,\n1008,01/10/2024,Capital Grille,Client lunch,Meals,284.00,\n1013,01/15/2024,ADP Payroll,Mid-month,Salaries,12500.00,\n1015,01/16/2024,Chase,Wire fee,Bank Charges,35.00,\n1017,01/18/2024,Sara Okonkwo,Marketing Inv 22,Contractor,2200.00,\n1024,01/29/2024,ADP Payroll,Final Jan,Salaries,12500.00,`}
-};
-function dl(t){const f=SAMPLES[t];const b=new Blob([f.csv],{type:'text/csv'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download=f.name;document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(u);}
-function toggleDrop(id){document.getElementById(id).classList.toggle('open');}
-document.addEventListener('click',e=>{
-  ['dlDrop','dlDrop2'].forEach(id=>{
-    const d=document.getElementById(id);
-    const btn=document.getElementById(id==='dlDrop'?'dlBtn':'dlBtn2');
-    if(d&&!d.contains(e.target)&&!btn?.contains(e.target))d.classList.remove('open');
+const bc = document.getElementById('miniBars');
+if (bc) {
+  BARS.forEach(b => {
+    const el = document.createElement('div');
+    el.className = 'mc-row';
+    el.innerHTML = `<span class="mc-lbl">${b.l}</span><div class="mc-track"><div class="mc-fill" style="width:0%;background:${b.c}" data-w="${b.p}"></div></div><span class="mc-val">${b.p}%</span>`;
+    bc.appendChild(el);
   });
-});
-document.querySelectorAll('a[href^="#"]').forEach(a=>{
-  a.addEventListener('click',e=>{const t=document.querySelector(a.getAttribute('href'));if(t){e.preventDefault();t.scrollIntoView({behavior:'smooth'});}});
+  setTimeout(() => document.querySelectorAll('.mc-fill').forEach(f => f.style.width = f.dataset.w + '%'), 600);
+}
+
+// ── Feature grid ───────────────────────────────────────
+const FEATURES = [
+  { num:'01', icon:'⚡', name:'AI Categorization', color:'#e86050',
+    desc:'Claude reads every transaction description and assigns the correct GAAP category. Learns from your existing categorizations as a pattern guide.',
+    tag:'Claude AI', tagBg:'rgba(200,160,64,.12)', tagColor:'#c8a040' },
+  { num:'02', icon:'📄', name:'Audit Working Papers', color:'#5b8ff9',
+    desc:'Generates the actual documents audit staff produce: lead schedules (W/P Ref: LS-01), PBC checklists, and prior-period variance analysis flagged for significance.',
+    tag:'CAS 230 / ISA 230', tagBg:'rgba(91,143,249,.1)', tagColor:'#5b8ff9' },
+  { num:'03', icon:'✍️', name:'AI Memo Drafting', color:'#c8a040',
+    desc:'Feed it your financial data and Claude drafts a professional CFO memo, management letter bullets, month-end client summary, or audit planning note.',
+    tag:'First-of-its-kind', tagBg:'rgba(200,160,64,.12)', tagColor:'#c8a040' },
+  { num:'04', icon:'⚖️', name:'Trial Balance Engine', color:'#5ec88a',
+    desc:'Every transaction produces two ledger entries — debit to an expense account, credit to cash or AP. Verifies Dr = Cr. Reports exact difference if off balance.',
+    tag:'GAAP Compliant', tagBg:'rgba(94,200,138,.1)', tagColor:'#5ec88a' },
+  { num:'05', icon:'🔗', name:'Bank Reconciliation', color:'#a78bfa',
+    desc:'Fuzzy-matching algorithm compares your ledger against your bank statement by amount, date (±5 days), and description similarity. Flags every unmatched item.',
+    tag:'Levenshtein Algorithm', tagBg:'rgba(167,139,250,.1)', tagColor:'#a78bfa' },
+  { num:'06', icon:'📈', name:'P&L + Cash Flow', color:'#34d399',
+    desc:'Revenue → Gross Profit → Operating Expenses → Net Income. Cash flow classified as Operating / Investing / Financing per GAAP. Multi-period YTD.',
+    tag:'Multi-Period', tagBg:'rgba(52,211,153,.1)', tagColor:'#34d399' },
+  { num:'07', icon:'🏦', name:'Bank Connection (Plaid)', color:'#60a5fa',
+    desc:'Same API QuickBooks uses. Connect 12,000+ banks — RBC, TD, Chase, any institution. No CSV required. Transactions load directly into the bookkeeping engine.',
+    tag:'Plaid Integration', tagBg:'rgba(96,165,250,.1)', tagColor:'#60a5fa' },
+  { num:'08', icon:'📋', name:'Immutable Audit Trail', color:'#f87171',
+    desc:'Every edit, deletion, AI action, and export logged with timestamp, before/after values, and user attribution. Entries cannot be altered retroactively.',
+    tag:'CAS 230 Mirrored', tagBg:'rgba(248,113,113,.1)', tagColor:'#f87171' },
+  { num:'09', icon:'🎯', name:'Budget vs Actual', color:'#fbbf24',
+    desc:'Set monthly budgets per category, track variance in real time with animated progress bars. Over-budget categories highlighted automatically.',
+    tag:'Real-Time Variance', tagBg:'rgba(251,191,36,.1)', tagColor:'#fbbf24' },
+];
+const fg = document.getElementById('featGrid');
+if (fg) {
+  FEATURES.forEach(f => {
+    const el = document.createElement('div');
+    el.className = 'feat-card reveal';
+    el.style.setProperty('--fc-color', f.color);
+    el.innerHTML = `
+      <div class="feat-num">${f.num}</div>
+      <span class="feat-icon">${f.icon}</span>
+      <div class="feat-name">${f.name}</div>
+      <div class="feat-desc">${f.desc}</div>
+      <span class="feat-tag" style="background:${f.tagBg};color:${f.tagColor}">${f.tag}</span>`;
+    fg.appendChild(el);
+    revealObs.observe(el);
+  });
+}
+
+// ── Profile cards ─────────────────────────────────────
+const PROFILES = [
+  { emoji:'🎓', name:'Student', color:'#7c3aed',
+    desc:'Track your spending, spot subscriptions eating your budget, set savings goals.',
+    features:['Monthly spending overview','Budget vs actual by category','Subscription detector','Savings goal tracker'],
+    cta:'Start as Student' },
+  { emoji:'💼', name:'Freelancer', color:'#0e6868',
+    desc:'Track income and expenses, see your net profit, estimate quarterly taxes automatically.',
+    features:['Income + expense split view','Quarterly tax estimator','Client invoice tracker','1099 contractor summary'],
+    cta:'Start as Freelancer' },
+  { emoji:'🏢', name:'Small Business', color:'#1c3e80',
+    desc:'Full double-entry bookkeeping, P&L, cash flow, bank reconciliation — without the $180/month bill.',
+    features:['GAAP double-entry journal','Trial balance + P&L + Cash Flow','Bank reconciliation','Budget vs actual'],
+    cta:'Start as Business' },
+  { emoji:'📊', name:'Professional', color:'#111110',
+    desc:'Audit-grade working papers, AI memos, and client-ready reports. For accountants who bill by the hour.',
+    features:['Working papers + lead schedules','AI memo drafting (CFO / audit)','CAS 230 audit trail','Multi-period client reporting'],
+    cta:'Start as Professional' },
+];
+const pg = document.getElementById('profilesGrid');
+if (pg) {
+  PROFILES.forEach(p => {
+    const el = document.createElement('a');
+    el.href = 'auth.html';
+    el.className = 'profile-card';
+    el.style.setProperty('--pc-color', p.color);
+    el.innerHTML = `
+      <span class="pc-emoji">${p.emoji}</span>
+      <div class="pc-name">${p.name}</div>
+      <div class="pc-desc">${p.desc}</div>
+      <ul class="pc-features-list">
+        ${p.features.map(f => `<li>${f}</li>`).join('')}
+      </ul>
+      <span class="pc-cta">${p.cta} →</span>`;
+    pg.appendChild(el);
+  });
+}
+
+// ── Sample data download ──────────────────────────────
+const SAMPLES = {
+  standard: {
+    name: 'ledgerai-sample.csv',
+    csv: `Date,Description,Amount,Category,Flag
+2024-01-02,ADP Payroll Processing,12500.00,Payroll,none
+2024-01-03,WeWork Office Lease,3200.00,Rent & Facilities,none
+2024-01-04,Google Ads Q1,2200.00,Advertising & Marketing,none
+2024-01-06,Jane Smith Contractor Inv 1041,1800.00,Contractor / Professional Services,none
+2024-01-07,AWS Cloud Services,312.00,Utilities & Hosting,none
+2024-01-10,Client Lunch Capital Grille,284.00,Meals & Entertainment,none
+2024-01-15,ADP Payroll Processing,12500.00,Payroll,none
+2024-01-16,Chase Bank Wire Fee,35.00,Bank & Finance Charges,none
+2024-01-18,Sara Okonkwo Contractor Inv 22,2200.00,Contractor / Professional Services,none
+2024-01-21,Client Dinner Nobu,412.00,Meals & Entertainment,none
+2024-01-29,ADP Payroll Processing,12500.00,Payroll,none`
+  },
+  bank: {
+    name: 'ledgerai-bank-rbc.csv',
+    csv: `Transaction Date,Description,Withdrawals,Deposits,Balance
+Jan 02/24,ADP PAYROLL 240102,12500.00,,48230.15
+Jan 03/24,WEWORK NYC JAN RENT,3200.00,,45030.15
+Jan 04/24,GOOGLE ADS 8834421,2200.00,,42830.15
+Jan 07/24,AWS CLOUD SVCS,312.00,,40630.15
+Jan 10/24,VISA - THE CAPITAL GRILLE,284.00,,40346.15
+Jan 15/24,ADP PAYROLL 240115,12500.00,,27846.15
+Jan 16/24,WIRE FEE,35.00,,27811.15
+Jan 21/24,VISA - NOBU RESTAURANT,412.00,,27399.15
+Jan 29/24,ADP PAYROLL 240129,12500.00,,14899.15
+Jan 15/24,CLIENT PAYMENT ACME CORP,,15000.00,29899.15`
+  },
+  qb: {
+    name: 'ledgerai-quickbooks.csv',
+    csv: `Num,Date,Name,Memo,Account,Debit,Credit
+1001,01/02/2024,ADP Payroll,Jan payroll,Salaries,12500.00,
+1002,01/03/2024,WeWork,Office lease,Rent,3200.00,
+1003,01/04/2024,Google,Q1 ads,Advertising,2200.00,
+1005,01/06/2024,Jane Smith,Contractor Inv 1041,Contractor,1800.00,
+1006,01/07/2024,AWS,Cloud hosting,Technology,312.00,
+1008,01/10/2024,Capital Grille,Client lunch,Meals,284.00,
+1013,01/15/2024,ADP Payroll,Mid-month,Salaries,12500.00,
+1015,01/16/2024,Chase,Wire fee,Bank Charges,35.00,
+1017,01/18/2024,Sara Okonkwo,Marketing Inv 22,Contractor,2200.00,
+1024,01/29/2024,ADP Payroll,Final Jan,Salaries,12500.00,`
+  }
+};
+function dl(t) {
+  const f = SAMPLES[t];
+  const b = new Blob([f.csv], { type: 'text/csv' });
+  const u = URL.createObjectURL(b);
+  const a = document.createElement('a');
+  a.href = u; a.download = f.name;
+  document.body.appendChild(a); a.click();
+  document.body.removeChild(a); URL.revokeObjectURL(u);
+}
+
+function toggleDropdown(id) {
+  document.querySelectorAll('.dropdown-menu').forEach(m => {
+    if (m.id !== id) m.classList.remove('open');
+  });
+  document.getElementById(id).classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  if (!e.target.closest('.dropdown-wrap')) {
+    document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('open'));
+  }
 });
 </script>
 </body>
