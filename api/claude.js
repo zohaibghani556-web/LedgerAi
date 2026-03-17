@@ -8,10 +8,11 @@ export default async function handler(req, res) {
   // Basic security — only allow requests from your own site
   const origin = req.headers.origin || '';
   const allowed = [
-    'https://ledgerai.vercel.app',        // your Vercel URL (update this)
-    'http://localhost:3000',               // local testing
-    'http://127.0.0.1:5500',              // VS Code Live Server
-    'null'                                 // opening HTML file directly
+    'https://ledger-ai-theta.vercel.app',  // production
+    'https://ledger-ai-git-main-zohaibghani556-webs-projects.vercel.app', // preview
+    'http://localhost:3000',
+    'http://127.0.0.1:5500',
+    'null'
   ];
   if (!allowed.includes(origin) && origin !== '') {
     return res.status(403).json({ error: 'Forbidden' });
