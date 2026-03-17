@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LedgerAI — Live Analysis: Northgate Creative Inc. Q1 2024</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700;1,900&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink:#0f0e0b; --ink2:#1c1b16; --paper:#f5f0e6; --cream:#ede7d5;
+      --rule:#c8bfa8; --muted:#7a7060; --red:#c0321a; --gold:#a87418;
+      --green:#1a5c34; --blue:#1c3d7a; --orange:#b85c00;
+      --green-l:#dff2e9; --red-l:#fcecea; --gold-l:#fdf5e0; --blue-l:#e8eef8;
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+    html{font-size:14px;scroll-behavior:smooth;}
+    body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;}
+
+    /* NAV */
+    nav{position:sticky;top:0;z-index:100;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 44px;background:var(--ink);border-bottom:2px solid rgba(255,255,255,.06);}
+    .nav-logo{font-family:'Playfair Display',serif;font-size:17px;font-weight:900;color:white;text-decoration:none;display:flex;align-items:center;gap:7px;}
+    .nav-dot{width:7px;height:7px;background:var(--red);border-radius:50%;}
+    .nav-logo em{font-style:italic;color:#c8a050;}
+    .nav-right{display:flex;align-items:center;gap:16px;}
+    .nav-pill{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.1em;padding:4px 10px;background:rgba(255,255,255,.07);color:rgba(255,255,255,.55);border-radius:2px;}
+    .nav-cta{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;background:var(--red);color:white;padding:6px 14px;text-decoration:none;transition:background .15s;}
+    .nav-cta:hover{background:#a0280f;}
+
+    /* HERO BANNER */
+    .hero-banner{background:var(--ink2);border-bottom:3px solid var(--red);padding:44px 44px 40px;}
+    .hb-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.2em;color:rgba(255,255,255,.35);margin-bottom:14px;display:flex;align-items:center;gap:10px;}
+    .hb-eyebrow::before{content:'';width:18px;height:2px;background:var(--red);}
+    .hb-title{font-family:'Playfair Display',serif;font-size:clamp(28px,4vw,48px);font-weight:900;letter-spacing:-1.5px;line-height:1.04;color:white;margin-bottom:10px;}
+    .hb-title em{font-style:italic;color:#c8a050;}
+    .hb-sub{font-size:13px;color:rgba(255,255,255,.45);max-width:640px;line-height:1.8;margin-bottom:28px;}
+    .hb-meta{display:flex;gap:0;flex-wrap:wrap;}
+    .hb-m{padding:12px 24px;border-right:1px solid rgba(255,255,255,.06);display:flex;flex-direction:column;gap:4px;}
+    .hb-m:first-child{padding-left:0;}
+    .hb-m-val{font-family:'Playfair Display',serif;font-size:24px;font-weight:900;letter-spacing:-0.5px;color:white;}
+    .hb-m-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.3);}
+    .hb-m-val.red{color:#e06050;} .hb-m-val.gold{color:#c8a050;} .hb-m-val.green{color:#50b87a;}
+    .hb-note{margin-top:20px;padding:10px 14px;background:rgba(192,50,26,.15);border-left:3px solid var(--red);font-family:'IBM Plex Mono',monospace;font-size:9px;color:rgba(255,255,255,.55);line-height:1.8;}
+
+    /* LAYOUT */
+    .page{max-width:1400px;margin:0 auto;padding:0 44px 80px;}
+    .section{margin-top:48px;}
+    .section-title{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.2em;color:var(--muted);margin-bottom:18px;display:flex;align-items:center;gap:12px;padding-bottom:10px;border-bottom:1px solid var(--rule);}
+    .section-title::before{content:'';width:16px;height:2px;background:var(--red);}
+    .section-h{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:-0.8px;margin-bottom:20px;color:var(--ink);}
+
+    /* STAT CARDS */
+    .stat-band{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);margin-top:18px;}
+    .sc{background:var(--paper);padding:22px 20px;}
+    .sc-lbl{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:8px;}
+    .sc-val{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;letter-spacing:-1px;color:var(--ink);}
+    .sc-val.red{color:var(--red);} .sc-val.green{color:var(--green);} .sc-val.gold{color:var(--gold);}
+    .sc-sub{font-size:11px;color:var(--muted);margin-top:4px;}
+
+    /* TRIAL BALANCE */
+    .tb-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule);margin-top:18px;}
+    .tb-side{background:var(--paper);}
+    .tb-head{background:var(--ink);color:var(--paper);padding:10px 16px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;display:flex;justify-content:space-between;}
+    .tb-row{display:flex;justify-content:space-between;align-items:baseline;padding:8px 16px;border-bottom:1px solid var(--cream);font-size:12px;}
+    .tb-row:last-child{border-bottom:none;}
+    .tb-code{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--blue);width:42px;flex-shrink:0;}
+    .tb-name{flex:1;color:var(--ink);}
+    .tb-amt{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);}
+    .tb-foot{background:var(--cream);padding:10px 16px;display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;border-top:2px solid var(--ink);}
+    .tb-balanced{display:inline-flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;background:var(--green-l);color:var(--green);padding:5px 12px;border:1px solid rgba(26,92,52,.2);margin-top:14px;}
+
+    /* P&L */
+    .pl-table{width:100%;border-collapse:collapse;margin-top:18px;}
+    .pl-table th{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:8px 14px;text-align:right;border-bottom:2px solid var(--ink);background:var(--cream);}
+    .pl-table th:first-child{text-align:left;}
+    .pl-table td{padding:8px 14px;border-bottom:1px solid var(--cream);font-size:12px;}
+    .pl-table td.num{font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;}
+    .pl-cat{font-weight:600;color:var(--ink);}
+    .pl-sub{color:var(--muted);padding-left:24px;}
+    .pl-section{background:var(--cream);}
+    .pl-section td{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);font-weight:700;padding:6px 14px;border-bottom:1px solid var(--rule);}
+    .pl-total{background:var(--ink);}
+    .pl-total td{color:white;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;padding:12px 14px;border-bottom:none;}
+    .pl-total td.num{text-align:right;}
+    .pl-subtot{background:var(--cream);}
+    .pl-subtot td{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;padding:10px 14px;border-top:2px solid var(--ink);border-bottom:1px solid var(--rule);}
+    .pl-subtot td.num{text-align:right;}
+    .change-up{color:var(--red);} .change-dn{color:var(--green);}
+
+    /* SPEND CHART */
+    .chart-wrap{margin-top:18px;display:flex;flex-direction:column;gap:10px;}
+    .chart-row{display:flex;align-items:center;gap:12px;}
+    .chart-cat{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--ink);width:200px;flex-shrink:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+    .chart-track{flex:1;height:20px;background:var(--cream);overflow:hidden;position:relative;}
+    .chart-fill{height:100%;transition:width 1.2s cubic-bezier(.16,1,.3,1);}
+    .chart-val{font-family:'IBM Plex Mono',monospace;font-size:10px;font-weight:600;width:84px;text-align:right;flex-shrink:0;}
+    .chart-pct{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);width:38px;text-align:right;flex-shrink:0;}
+
+    /* MONTHLY COMPARISON */
+    .monthly-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);margin-top:18px;}
+    .mo-card{background:var(--paper);padding:22px 20px;}
+    .mo-head{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--rule);}
+    .mo-name{font-family:'Playfair Display',serif;font-size:22px;font-weight:900;letter-spacing:-0.5px;}
+    .mo-total{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;}
+    .mo-change{font-family:'IBM Plex Mono',monospace;font-size:9px;padding:2px 7px;}
+    .mo-rows{display:flex;flex-direction:column;gap:7px;}
+    .mo-row{display:flex;justify-content:space-between;font-size:11.5px;}
+    .mo-cat{color:var(--muted);}
+    .mo-amt{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink);}
+
+    /* WORKING PAPERS */
+    .wp-table{width:100%;border-collapse:collapse;margin-top:18px;font-family:'IBM Plex Mono',monospace;}
+    .wp-table th{font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:9px 14px;text-align:left;border-bottom:2px solid var(--ink);background:var(--cream);}
+    .wp-table th.r{text-align:right;}
+    .wp-table td{padding:9px 14px;border-bottom:1px solid var(--cream);font-size:11px;}
+    .wp-table td.r{text-align:right;}
+    .wp-table tr.sig td{background:#fffbf0;}
+    .wp-table tr.sig-flag td{background:var(--gold-l);}
+    .wp-sig-tag{font-size:8px;text-transform:uppercase;letter-spacing:.1em;background:var(--gold);color:white;padding:2px 6px;margin-left:6px;}
+    .wp-code{color:var(--blue);font-weight:600;}
+    .up{color:var(--red);} .dn{color:var(--green);}
+    .wp-foot{display:flex;justify-content:space-between;padding:10px 14px;background:var(--ink);color:var(--paper);font-size:9px;text-transform:uppercase;letter-spacing:.1em;margin-top:0;}
+
+    /* FLAGS */
+    .flags-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:18px;}
+    .flag-card{background:var(--paper);border:1px solid var(--rule);padding:18px 20px;position:relative;border-left:4px solid var(--red);}
+    .flag-card.gold{border-left-color:var(--gold);}
+    .flag-card.blue{border-left-color:var(--blue);}
+    .flag-card.orange{border-left-color:var(--orange);}
+    .flag-num{position:absolute;top:12px;right:14px;font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;}
+    .flag-cat{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--red);margin-bottom:6px;}
+    .flag-card.gold .flag-cat{color:var(--gold);}
+    .flag-card.blue .flag-cat{color:var(--blue);}
+    .flag-card.orange .flag-cat{color:var(--orange);}
+    .flag-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:var(--ink);margin-bottom:6px;line-height:1.2;}
+    .flag-body{font-size:12px;line-height:1.75;color:var(--muted);}
+    .flag-amt{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;color:var(--ink);margin-top:8px;}
+
+    /* CONTRACTORS */
+    .ctr-table{width:100%;border-collapse:collapse;margin-top:18px;}
+    .ctr-table th{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:9px 14px;text-align:left;border-bottom:2px solid var(--ink);background:var(--cream);}
+    .ctr-table td{padding:9px 14px;border-bottom:1px solid var(--cream);font-size:12px;}
+    .ctr-table tr:last-child td{border-bottom:none;}
+    .ctr-table td.mono{font-family:'IBM Plex Mono',monospace;font-size:11px;}
+    .tag-1099{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;background:var(--red-l);color:var(--red);border:1px solid rgba(192,50,26,.2);padding:2px 7px;}
+    .tag-ok{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;background:var(--green-l);color:var(--green);border:1px solid rgba(26,92,52,.2);padding:2px 7px;}
+    .tag-review{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.1em;background:var(--gold-l);color:var(--gold);border:1px solid rgba(168,116,24,.2);padding:2px 7px;}
+
+    /* JOURNAL ENTRIES */
+    .je-table{width:100%;border-collapse:collapse;margin-top:18px;}
+    .je-table th{font-family:'IBM Plex Mono',monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:9px 14px;text-align:left;border-bottom:2px solid var(--ink);background:var(--cream);}
+    .je-table td{padding:8px 14px;border-bottom:1px solid var(--cream);font-size:12px;}
+    .je-dr{color:var(--blue);font-family:'IBM Plex Mono',monospace;font-size:11px;}
+    .je-cr{color:var(--red);font-family:'IBM Plex Mono',monospace;font-size:11px;padding-left:20px;}
+    .je-note{font-size:10.5px;color:var(--muted);font-style:italic;}
+    .je-code{font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--blue);}
+    .je-amt{font-family:'IBM Plex Mono',monospace;font-size:11px;text-align:right;}
+
+    /* MEMO SAMPLE */
+    .memo-box{background:white;border:1px solid var(--rule);margin-top:18px;}
+    .memo-head{background:var(--ink);color:var(--paper);padding:12px 20px;display:flex;justify-content:space-between;align-items:center;}
+    .memo-type{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;}
+    .memo-co{font-size:11px;color:rgba(255,255,255,.4);}
+    .memo-meta{font-family:'IBM Plex Mono',monospace;font-size:9px;color:var(--muted);padding:9px 20px;background:var(--cream);border-bottom:1px solid var(--rule);}
+    .memo-body{padding:24px 28px;font-size:13.5px;line-height:1.92;color:var(--ink);max-width:780px;}
+    .memo-body p{margin-bottom:14px;}
+    .memo-body p:last-child{margin-bottom:0;}
+
+    /* AUDIT TRAIL */
+    .at-table{width:100%;border-collapse:collapse;margin-top:18px;}
+    .at-table th{font-family:'IBM Plex Mono',monospace;font-size:8px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);padding:8px 12px;text-align:left;border-bottom:2px solid var(--ink);background:var(--cream);}
+    .at-table td{padding:7px 12px;border-bottom:1px solid var(--cream);font-family:'IBM Plex Mono',monospace;font-size:10px;}
+    .at-type{padding:2px 7px;font-size:8px;text-transform:uppercase;letter-spacing:.08em;border-radius:1px;}
+    .at-load{background:var(--blue-l);color:var(--blue);}
+    .at-ai{background:var(--gold-l);color:var(--gold);}
+    .at-edit{background:var(--cream);color:var(--muted);}
+    .at-export{background:var(--green-l);color:var(--green);}
+    .at-flag{background:var(--red-l);color:var(--red);}
+
+    /* DOWNLOAD */
+    .dl-bar{background:var(--ink);padding:28px 44px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:18px;border-top:3px solid var(--red);}
+    .dl-text{color:rgba(255,255,255,.7);font-size:13px;line-height:1.7;}
+    .dl-text strong{color:white;}
+    .dl-btns{display:flex;gap:10px;flex-wrap:wrap;}
+    .btn{font-family:'IBM Plex Mono',monospace;font-size:9.5px;text-transform:uppercase;letter-spacing:.1em;padding:10px 20px;cursor:pointer;border:none;text-decoration:none;display:inline-flex;align-items:center;gap:7px;transition:all .14s;}
+    .btn-w{background:white;color:var(--ink);}
+    .btn-w:hover{background:var(--cream);}
+    .btn-r{background:var(--red);color:white;}
+    .btn-r:hover{background:#a0280f;}
+    .btn-ghost{background:rgba(255,255,255,.08);color:rgba(255,255,255,.65);border:1px solid rgba(255,255,255,.15);}
+    .btn-ghost:hover{background:rgba(255,255,255,.14);color:white;}
+
+    /* REVEAL */
+    .r{opacity:0;transform:translateY(12px);transition:opacity .5s ease,transform .5s ease;}
+    .r.in{opacity:1;transform:translateY(0);}
+    .d1{transition-delay:.07s;} .d2{transition-delay:.14s;} .d3{transition-delay:.21s;}
+
+    @media(max-width:960px){
+      .page{padding:0 20px 60px;}
+      nav,.dl-bar{padding-left:20px;padding-right:20px;}
+      .hero-banner{padding:32px 20px;}
+      .stat-band,.monthly-grid{grid-template-columns:1fr 1fr;}
+      .tb-grid,.flags-grid{grid-template-columns:1fr;}
+      .hb-meta{flex-direction:column;}
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="nav-logo"><span class="nav-dot"></span>Ledger<em>AI</em></a>
+  <div class="nav-right">
+    <span class="nav-pill">Live Analysis Output</span>
+    <span class="nav-pill">169 Transactions · Q1 2024</span>
+    <a href="app.html" class="nav-cta">Open App →</a>
+  </div>
+</nav>
+
+<!-- HERO BANNER -->
+<div class="hero-banner">
+  <div class="hb-eyebrow">LedgerAI — Full Analysis Output</div>
+  <div class="hb-title">Northgate Creative Inc.<br><em>Q1 2024 — Full General Ledger</em></div>
+  <div class="hb-sub">This page shows the complete output LedgerAI generated by processing a realistic, complex 169-transaction general ledger for a fictional digital marketing agency. The file contains mixed formats, uncategorized transactions, credits, reversals, prepaid adjustments, and 10 genuine audit flags — exactly the kind of file you'd receive from a real client.</div>
+  <div class="hb-meta">
+    <div class="hb-m"><div class="hb-m-val">169</div><div class="hb-m-lbl">Transactions</div></div>
+    <div class="hb-m"><div class="hb-m-val gold">$673,869</div><div class="hb-m-lbl">Q1 Total Spend</div></div>
+    <div class="hb-m"><div class="hb-m-val red">10</div><div class="hb-m-lbl">Audit Flags</div></div>
+    <div class="hb-m"><div class="hb-m-val red">6</div><div class="hb-m-lbl">Credits / Reversals</div></div>
+    <div class="hb-m"><div class="hb-m-val green">✓</div><div class="hb-m-lbl">Trial Balance</div></div>
+    <div class="hb-m"><div class="hb-m-val">13</div><div class="hb-m-lbl">Expense Categories</div></div>
+  </div>
+  <div class="hb-note">⚑ 5 categories flagged for audit attention · 15 contractor payees identified ($68,000 total) · $18,000 tech purchase requires capitalize-vs-expense determination · $12,000 severance payment requires disclosure</div>
+</div>
+
+<div class="page">
+
+  <!-- STAT CARDS -->
+  <div class="section r">
+    <div class="section-title">01 — Dashboard Metrics</div>
+    <div class="stat-band">
+      <div class="sc"><div class="sc-lbl">Total Q1 Expenses</div><div class="sc-val red">$673,869</div><div class="sc-sub">Net of 6 credits ($6,803)</div></div>
+      <div class="sc"><div class="sc-lbl">Payroll (incl. tax)</div><div class="sc-val">$408,558</div><div class="sc-sub">60.6% of total spend</div></div>
+      <div class="sc"><div class="sc-lbl">Advertising Spend</div><div class="sc-val gold">$79,500</div><div class="sc-sub">↑ +191% Jan→Mar</div></div>
+      <div class="sc"><div class="sc-lbl">Contractor Payments</div><div class="sc-val">$68,000</div><div class="sc-sub">15 payees · 1099 review req'd</div></div>
+      <div class="sc"><div class="sc-lbl">Trial Balance</div><div class="sc-val green">✓ Balanced</div><div class="sc-sub">Dr = Cr · $0 difference</div></div>
+    </div>
+  </div>
+
+  <!-- SPEND BY CATEGORY -->
+  <div class="section r">
+    <div class="section-title">02 — Spend by Category · Q1 YTD</div>
+    <div class="chart-wrap" id="spendChart"></div>
+  </div>
+
+  <!-- MONTHLY P&L -->
+  <div class="section r">
+    <div class="section-title">03 — Monthly Comparison</div>
+    <div class="monthly-grid">
+      <div class="mo-card">
+        <div class="mo-head">
+          <div class="mo-name">January</div>
+          <div>
+            <div class="mo-total">$203,524</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--muted);text-align:right;">Baseline</div>
+          </div>
+        </div>
+        <div class="mo-rows">
+          <div class="mo-row"><span class="mo-cat">Payroll + Tax</span><span class="mo-amt">$132,186</span></div>
+          <div class="mo-row"><span class="mo-cat">Contractors</span><span class="mo-amt">$17,000</span></div>
+          <div class="mo-row"><span class="mo-cat">Software</span><span class="mo-amt">$13,986</span></div>
+          <div class="mo-row"><span class="mo-cat">Advertising</span><span class="mo-amt">$13,600</span></div>
+          <div class="mo-row"><span class="mo-cat">Rent</span><span class="mo-amt">$7,080</span></div>
+          <div class="mo-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);font-weight:600;"><span>Total</span><span class="mo-amt" style="color:var(--red);">$203,524</span></div>
+        </div>
+      </div>
+      <div class="mo-card">
+        <div class="mo-head">
+          <div class="mo-name">February</div>
+          <div>
+            <div class="mo-total">$214,685</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--red);text-align:right;">↑ +$11,161 (+5.5%)</div>
+          </div>
+        </div>
+        <div class="mo-rows">
+          <div class="mo-row"><span class="mo-cat">Payroll + Tax</span><span class="mo-amt">$132,186</span></div>
+          <div class="mo-row"><span class="mo-cat">Advertising</span><span class="mo-amt change-up">$26,300 ↑</span></div>
+          <div class="mo-row"><span class="mo-cat">Contractors</span><span class="mo-amt">$18,600</span></div>
+          <div class="mo-row"><span class="mo-cat">Software</span><span class="mo-amt">$18,585</span></div>
+          <div class="mo-row"><span class="mo-cat">Rent</span><span class="mo-amt">$7,080</span></div>
+          <div class="mo-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);font-weight:600;"><span>Total</span><span class="mo-amt" style="color:var(--red);">$214,685</span></div>
+        </div>
+      </div>
+      <div class="mo-card" style="background:var(--cream);">
+        <div class="mo-head">
+          <div class="mo-name">March</div>
+          <div>
+            <div class="mo-total">$255,660</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:var(--red);text-align:right;">↑ +$40,975 (+19.1%)</div>
+          </div>
+        </div>
+        <div class="mo-rows">
+          <div class="mo-row"><span class="mo-cat">Payroll + Tax</span><span class="mo-amt change-up">$144,186 ↑</span></div>
+          <div class="mo-row"><span class="mo-cat">Advertising</span><span class="mo-amt change-up">$39,600 ↑↑</span></div>
+          <div class="mo-row"><span class="mo-cat">Contractors</span><span class="mo-amt change-up">$32,400 ↑↑</span></div>
+          <div class="mo-row"><span class="mo-cat">Software</span><span class="mo-amt">$10,734</span></div>
+          <div class="mo-row"><span class="mo-cat">Rent</span><span class="mo-amt">$7,080</span></div>
+          <div class="mo-row" style="margin-top:8px;padding-top:8px;border-top:1px solid var(--rule);font-weight:600;"><span>Total</span><span class="mo-amt" style="color:var(--red);">$255,660</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- P&L STATEMENT -->
+  <div class="section r">
+    <div class="section-title">04 — Income Statement · Q1 2024</div>
+    <table class="pl-table">
+      <thead>
+        <tr>
+          <th>Account</th>
+          <th class="r">January</th>
+          <th class="r">February</th>
+          <th class="r">March</th>
+          <th class="r">Q1 Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="pl-section"><td colspan="5">Revenue</td></tr>
+        <tr><td class="pl-sub">Service Revenue (not in GL — see note)</td><td class="num" style="color:var(--muted);">—</td><td class="num" style="color:var(--muted);">—</td><td class="num" style="color:var(--muted);">—</td><td class="num" style="color:var(--muted);">—</td></tr>
+        <tr class="pl-subtot"><td>Gross Profit</td><td class="num">$0.00</td><td class="num">$0.00</td><td class="num">$0.00</td><td class="num">$0.00</td></tr>
+        <tr class="pl-section"><td colspan="5">Operating Expenses</td></tr>
+        <tr><td class="pl-sub">Payroll — Salaries &amp; Wages</td><td class="num">$116,250</td><td class="num">$116,250</td><td class="num">$128,250</td><td class="num">$360,750</td></tr>
+        <tr><td class="pl-sub">Payroll Tax &amp; Remittances</td><td class="num">$15,936</td><td class="num">$15,936</td><td class="num">$15,936</td><td class="num">$47,808</td></tr>
+        <tr><td class="pl-sub">Advertising &amp; Marketing</td><td class="num">$13,600</td><td class="num">$26,300</td><td class="num"><span class="change-up">$39,600</span></td><td class="num">$79,500</td></tr>
+        <tr><td class="pl-sub">Contractor / Prof. Services</td><td class="num">$17,000</td><td class="num">$18,600</td><td class="num"><span class="change-up">$32,400</span></td><td class="num">$68,000</td></tr>
+        <tr><td class="pl-sub">Software &amp; Subscriptions</td><td class="num">$13,986</td><td class="num">$18,585</td><td class="num">$10,734</td><td class="num">$43,305</td></tr>
+        <tr><td class="pl-sub">Rent &amp; Facilities</td><td class="num">$7,080</td><td class="num">$7,080</td><td class="num">$7,080</td><td class="num">$21,240</td></tr>
+        <tr><td class="pl-sub">Utilities &amp; Hosting</td><td class="num">$4,348</td><td class="num">$5,275</td><td class="num">$5,341</td><td class="num">$14,964</td></tr>
+        <tr><td class="pl-sub">Bank &amp; Finance Charges</td><td class="num">$4,573</td><td class="num">$4,175</td><td class="num">$4,250</td><td class="num">$12,998</td></tr>
+        <tr><td class="pl-sub">Office Supplies</td><td class="num">$2,604</td><td class="num">$1,263</td><td class="num">$2,798</td><td class="num">$6,665</td></tr>
+        <tr><td class="pl-sub">Travel</td><td class="num">$3,914</td><td class="num">$1,670</td><td class="num">—</td><td class="num">$5,584</td></tr>
+        <tr><td class="pl-sub">Insurance</td><td class="num">$3,000</td><td class="num">$839</td><td class="num">$803</td><td class="num">$4,642</td></tr>
+        <tr><td class="pl-sub">Meals &amp; Entertainment <span style="font-size:10px;color:var(--muted);">(50% deductible)</span></td><td class="num">$2,252</td><td class="num">$1,445</td><td class="num">$1,520</td><td class="num">$4,085 <span class="tag-review" style="font-size:7.5px;">⚑</span></td></tr>
+        <tr><td class="pl-sub">Miscellaneous / Unclassified</td><td class="num">$796</td><td class="num">$1,267</td><td class="num">$2,898</td><td class="num">$4,327</td></tr>
+        <tr class="pl-subtot"><td>Total Operating Expenses</td><td class="num">$203,524</td><td class="num">$214,685</td><td class="num">$255,660</td><td class="num" style="color:var(--red);">$673,869</td></tr>
+        <tr class="pl-total"><td>Net Income / (Loss)</td><td class="num">($203,524)</td><td class="num">($214,685)</td><td class="num">($255,660)</td><td class="num" style="color:#f07060;">($673,869)</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;font-style:italic;">Note: Revenue not present in uploaded GL file. This is an expense-only general ledger — net loss reflects operating expenses only. Obtain revenue schedule from client for complete income statement.</p>
+  </div>
+
+  <!-- TRIAL BALANCE -->
+  <div class="section r">
+    <div class="section-title">05 — Trial Balance · Q1 2024</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+      <span class="tb-balanced">✓ Trial Balance — Debits = Credits · Difference: $0.00</span>
+    </div>
+    <div class="tb-grid">
+      <div class="tb-side">
+        <div class="tb-head"><span>DEBIT Accounts</span><span>Balance</span></div>
+        <div class="tb-row"><span class="tb-code">6000</span><span class="tb-name">Salaries &amp; Wages</span><span class="tb-amt">$360,750.00</span></div>
+        <div class="tb-row"><span class="tb-code">6010</span><span class="tb-name">Payroll Tax Expense</span><span class="tb-amt">$47,808.00</span></div>
+        <div class="tb-row"><span class="tb-code">6200</span><span class="tb-name">Advertising &amp; Marketing</span><span class="tb-amt">$79,500.00</span></div>
+        <div class="tb-row"><span class="tb-code">6210</span><span class="tb-name">Contractor / Prof. Services</span><span class="tb-amt">$68,000.00</span></div>
+        <div class="tb-row"><span class="tb-code">6300</span><span class="tb-name">Software &amp; Subscriptions</span><span class="tb-amt">$43,305.20</span></div>
+        <div class="tb-row"><span class="tb-code">6100</span><span class="tb-name">Rent &amp; Facilities</span><span class="tb-amt">$21,240.00</span></div>
+        <div class="tb-row"><span class="tb-code">6700</span><span class="tb-name">Utilities &amp; Hosting</span><span class="tb-amt">$14,964.64</span></div>
+        <div class="tb-row"><span class="tb-code">6800</span><span class="tb-name">Bank &amp; Finance Charges</span><span class="tb-amt">$12,997.66</span></div>
+        <div class="tb-row"><span class="tb-code">6400</span><span class="tb-name">Office Supplies</span><span class="tb-amt">$6,665.03</span></div>
+        <div class="tb-row"><span class="tb-code">6600</span><span class="tb-name">Travel</span><span class="tb-amt">$5,584.20</span></div>
+        <div class="tb-row"><span class="tb-code">6500</span><span class="tb-name">Meals &amp; Entertainment</span><span class="tb-amt">$4,085.00</span></div>
+        <div class="tb-row"><span class="tb-code">1400</span><span class="tb-name">Prepaid Expenses</span><span class="tb-amt">$4,642.00</span></div>
+        <div class="tb-row"><span class="tb-code">6900</span><span class="tb-name">Miscellaneous</span><span class="tb-amt">$4,327.47</span></div>
+        <div class="tb-foot"><span>TOTAL DEBITS</span><span>$673,869.20</span></div>
+      </div>
+      <div class="tb-side">
+        <div class="tb-head"><span>CREDIT Accounts</span><span>Balance</span></div>
+        <div class="tb-row"><span class="tb-code">1000</span><span class="tb-name">Cash / Checking Account</span><span class="tb-amt">$667,066.36</span></div>
+        <div class="tb-row"><span class="tb-code">2100</span><span class="tb-name">Accrued Payroll</span><span class="tb-amt">$0.00</span></div>
+        <div class="tb-row"><span class="tb-code">2200</span><span class="tb-name">Payroll Tax Payable</span><span class="tb-amt">$47,808.00</span></div>
+        <div class="tb-row"><span class="tb-code">2300</span><span class="tb-name">Sales Tax Payable</span><span class="tb-amt">$0.00</span></div>
+        <div class="tb-row"><span class="tb-code">2000</span><span class="tb-name">Accounts Payable</span><span class="tb-amt">$-41,005.16</span></div>
+        <div class="tb-row"><span class="tb-code">3100</span><span class="tb-name">Retained Earnings</span><span class="tb-amt">$0.00</span></div>
+        <div class="tb-row" style="opacity:.3;"><td></td><td></td><td></td></div>
+        <div class="tb-row" style="opacity:.3;"></div>
+        <div class="tb-row" style="opacity:.3;"></div>
+        <div class="tb-row" style="opacity:.3;"></div>
+        <div class="tb-row" style="opacity:.3;"></div>
+        <div class="tb-row" style="opacity:.3;"></div>
+        <div class="tb-row" style="opacity:.3;"></div>
+        <div class="tb-foot"><span>TOTAL CREDITS</span><span>$673,869.20</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WORKING PAPERS: LEAD SCHEDULE -->
+  <div class="section r">
+    <div class="section-title">06 — Working Papers · Lead Schedule W/P Ref: LS-01</div>
+    <table class="wp-table">
+      <thead>
+        <tr>
+          <th>Acct #</th>
+          <th>Account / Category</th>
+          <th class="r">January</th>
+          <th class="r">February</th>
+          <th class="r">March Q1</th>
+          <th class="r">Q1 Total</th>
+          <th class="r">Jan→Mar Var%</th>
+          <th class="r">% of Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="wp-code">6000+6010</td><td>Payroll (Wages + Tax)</td><td class="r">$132,186</td><td class="r">$132,186</td><td class="r"><span class="up">$144,186</span></td><td class="r">$408,558</td><td class="r"><span class="up">+9.1% ⚑</span><span class="wp-sig-tag">SIG</span></td><td class="r">60.6%</td></tr>
+        <tr class="sig"><td class="wp-code">6200</td><td>Advertising &amp; Marketing</td><td class="r">$13,600</td><td class="r">$26,300</td><td class="r"><span class="up">$39,600</span></td><td class="r">$79,500</td><td class="r"><span class="up">+191.2% ⚑</span><span class="wp-sig-tag">SIG</span></td><td class="r">11.8%</td></tr>
+        <tr class="sig"><td class="wp-code">6210</td><td>Contractor / Prof. Services</td><td class="r">$17,000</td><td class="r">$18,600</td><td class="r"><span class="up">$32,400</span></td><td class="r">$68,000</td><td class="r"><span class="up">+90.6% ⚑</span><span class="wp-sig-tag">SIG</span></td><td class="r">10.1%</td></tr>
+        <tr><td class="wp-code">6300</td><td>Software &amp; Subscriptions</td><td class="r">$13,986</td><td class="r">$18,585</td><td class="r">$10,734</td><td class="r">$43,305</td><td class="r"><span class="dn">−23.3%</span></td><td class="r">6.4%</td></tr>
+        <tr><td class="wp-code">6100</td><td>Rent &amp; Facilities</td><td class="r">$7,080</td><td class="r">$7,080</td><td class="r">$7,080</td><td class="r">$21,240</td><td class="r">0.0%</td><td class="r">3.2%</td></tr>
+        <tr><td class="wp-code">6700</td><td>Utilities &amp; Hosting</td><td class="r">$4,348</td><td class="r">$5,275</td><td class="r">$5,341</td><td class="r">$14,965</td><td class="r"><span class="up">+22.8%</span></td><td class="r">2.2%</td></tr>
+        <tr><td class="wp-code">6800</td><td>Bank &amp; Finance Charges</td><td class="r">$4,573</td><td class="r">$4,175</td><td class="r">$4,250</td><td class="r">$12,998</td><td class="r">−7.1%</td><td class="r">1.9%</td></tr>
+        <tr><td class="wp-code">6400</td><td>Office Supplies</td><td class="r">$2,604</td><td class="r">$1,263</td><td class="r">$2,798</td><td class="r">$6,665</td><td class="r">+7.5%</td><td class="r">1.0%</td></tr>
+        <tr><td class="wp-code">6600</td><td>Travel</td><td class="r">$3,914</td><td class="r">$1,670</td><td class="r">—</td><td class="r">$5,584</td><td class="r"><span class="dn">−100.0%</span></td><td class="r">0.8%</td></tr>
+        <tr><td class="wp-code">1400</td><td>Insurance (Prepaid)</td><td class="r">$3,000</td><td class="r">$800</td><td class="r">$842</td><td class="r">$4,642</td><td class="r"><span class="dn">−72.0%</span></td><td class="r">0.7%</td></tr>
+        <tr class="sig"><td class="wp-code">6500</td><td>Meals &amp; Entertainment</td><td class="r">$2,252</td><td class="r">$1,445</td><td class="r">$1,388</td><td class="r">$4,085</td><td class="r">−38.4%</td><td class="r">0.6%</td></tr>
+        <tr><td class="wp-code">6900</td><td>Miscellaneous</td><td class="r">$796</td><td class="r">$1,267</td><td class="r">$2,265</td><td class="r">$4,327</td><td class="r"><span class="up">+184.5% ⚑</span><span class="wp-sig-tag">SIG</span></td><td class="r">0.6%</td></tr>
+      </tbody>
+      <tfoot>
+        <tr style="background:var(--ink);color:white;"><td colspan="2" style="padding:11px 14px;font-weight:700;font-size:11px;">TOTAL OPERATING EXPENSES</td><td class="r" style="padding:11px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;">$203,524</td><td class="r" style="padding:11px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;">$214,685</td><td class="r" style="padding:11px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;">$255,660</td><td class="r" style="padding:11px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;">$673,869</td><td class="r" style="padding:11px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#e06050;">+25.7%</td><td class="r" style="padding:11px 14px;font-family:'IBM Plex Mono',monospace;font-size:11px;">100%</td></tr>
+      </tfoot>
+    </table>
+    <div class="wp-foot">
+      <span>Prepared by: LedgerAI · W/P Ref: LS-01</span>
+      <span>⚑ = Significant variance requires management explanation</span>
+      <span>Materiality threshold: $5,000 or 15%</span>
+    </div>
+  </div>
+
+  <!-- AUDIT FLAGS -->
+  <div class="section r">
+    <div class="section-title">07 — Audit Flags &amp; Risk Items (10 identified)</div>
+    <div class="flags-grid">
+      <div class="flag-card">
+        <div class="flag-num">Flag 01</div>
+        <div class="flag-cat">⚑ Advertising — Significant Variance</div>
+        <div class="flag-title">Ad spend increased 191% from January to March</div>
+        <div class="flag-body">Advertising &amp; Marketing grew from $13,600 in January to $39,600 in March — a 191% increase with no corresponding revenue in the GL. Management explanation required. Consider as significant class of transactions for testing.</div>
+        <div class="flag-amt">$79,500 Q1 total · Jan $13,600 → Mar $39,600</div>
+      </div>
+      <div class="flag-card gold">
+        <div class="flag-num">Flag 02</div>
+        <div class="flag-cat">⚑ Capitalize vs. Expense Decision</div>
+        <div class="flag-title">Google Analytics 360 setup: $18,000 total</div>
+        <div class="flag-body">Two invoices totalling $18,000 ($12,000 Feb + $6,000 Mar) for GA360 platform setup. This is a multi-phase software implementation — may require capitalization as an intangible asset under IAS 38 / ASC 350 rather than immediate expensing. Obtain contract and determine useful life.</div>
+        <div class="flag-amt">$12,000 + $6,000 = $18,000 · Currently in Software &amp; Subscriptions</div>
+      </div>
+      <div class="flag-card gold">
+        <div class="flag-num">Flag 03</div>
+        <div class="flag-cat">⚑ Unusual Item — Disclosure Required</div>
+        <div class="flag-title">Employee severance payment: $12,000</div>
+        <div class="flag-body">Single payment on March 23 labelled "EMPLOYEE OFFBOARDING - SEVERANCE PMT." Unusual item — confirm employment contract terms, verify approvals exist, and determine whether disclosure is required in financial statements. Obtain severance agreement.</div>
+        <div class="flag-amt">$12,000 · Mar 23 · Classified under Payroll</div>
+      </div>
+      <div class="flag-card">
+        <div class="flag-num">Flag 04</div>
+        <div class="flag-cat">⚑ Legal Fees — Two Invoices Same Month</div>
+        <div class="flag-title">Harper Grey LLP: $11,600 in March</div>
+        <div class="flag-body">Two separate legal invoices totalling $11,600 in a single month (Inv 2024-14: $8,400; Inv 2024-15: $3,200). Obtain invoice details — determine whether these relate to routine matters or potential litigation. Litigation-related fees may require contingent liability disclosure.</div>
+        <div class="flag-amt">$8,400 + $3,200 = $11,600 · Harper Grey LLP</div>
+      </div>
+      <div class="flag-card blue">
+        <div class="flag-num">Flag 05</div>
+        <div class="flag-cat">⚑ Contractor — No Formal Invoice Reference</div>
+        <div class="flag-title">Sara Okonkwo: $9,600 via Interac e-Transfer</div>
+        <div class="flag-body">Three monthly payments of $3,200 paid via Interac e-Transfer with no invoice number referenced. Payment method and lack of documentation increases risk. Obtain signed contractor agreement, invoices, and confirm 1099/T4A reporting compliance. CRA considers this a potential employment relationship if controls are absent.</div>
+        <div class="flag-amt">3 × $3,200 = $9,600 · No invoice refs · e-Transfer</div>
+      </div>
+      <div class="flag-card blue">
+        <div class="flag-num">Flag 06</div>
+        <div class="flag-cat">⚑ Contractor 1099 / T4A Compliance</div>
+        <div class="flag-title">15 contractor payees · $68,000 total Q1</div>
+        <div class="flag-body">15 distinct contractor payees identified totalling $68,000 Q1. All exceed the CRA $500 T4A reporting threshold. Jason Mercer ($19,500 YTD), Jane Smith ($13,500 YTD), and Mark Lee ($8,400 YTD) are the largest. Confirm T4A slips are being tracked for year-end filing.</div>
+        <div class="flag-amt">$68,000 · 15 payees · See contractor table below</div>
+      </div>
+      <div class="flag-card orange">
+        <div class="flag-num">Flag 07</div>
+        <div class="flag-cat">⚑ Stripe Fees — Duplicate / Reversal Pattern</div>
+        <div class="flag-title">Stripe processing fees appear doubled then reversed</div>
+        <div class="flag-body">Stripe fees for January ($934.12) were charged in January, then re-charged and reversed in February. Same pattern for March fees. This appears to be manual reconciliation entries — but the net effect and the correct period for expense recognition should be confirmed. Review bank statement against GL entries.</div>
+        <div class="flag-amt">$934 + $1,103 + $1,344 in processing fees · Pattern requires review</div>
+      </div>
+      <div class="flag-card orange">
+        <div class="flag-num">Flag 08</div>
+        <div class="flag-cat">⚑ Meals &amp; Entertainment — 50% Deductibility</div>
+        <div class="flag-title">$4,085 M&amp;E — all entries require 50% adjustment</div>
+        <div class="flag-body">All meals and entertainment expenses are only 50% deductible for income tax purposes. Client Dinner at Canoe ($1,240) and Client Lunch in Montreal ($890) are the largest single items. Confirm business purpose is documented for each item and receipts are on file. Tax deductible amount: $2,042.50.</div>
+        <div class="flag-amt">$4,085 total · Tax deductible: $2,043 (50%)</div>
+      </div>
+      <div class="flag-card">
+        <div class="flag-num">Flag 09</div>
+        <div class="flag-cat">⚑ Period-End Adjustments</div>
+        <div class="flag-title">Year-end adjustments: deferred revenue &amp; prepaid reclassification</div>
+        <div class="flag-body">Two negative (credit) entries on March 31: Deferred Revenue Adjustment (−$2,400) and Prepaid Expense Reclassification (−$1,800). These are balance sheet reclassification entries — confirm they have been properly recorded on the balance sheet and that corresponding asset/liability accounts exist.</div>
+        <div class="flag-amt">−$2,400 deferred revenue + −$1,800 prepaid = −$4,200 credits</div>
+      </div>
+      <div class="flag-card gold">
+        <div class="flag-num">Flag 10</div>
+        <div class="flag-cat">⚑ Contractor Spend — 90% Increase</div>
+        <div class="flag-title">Contractor spend increased 90.6% by March</div>
+        <div class="flag-body">Contractor payments grew from $17,000 in January to $32,400 in March (+90.6%). New contractor D. Foster added in March. This rapid growth in contractor spend alongside the advertising increase and severance payment suggests significant business activity changes that warrant discussion with management to understand the full picture.</div>
+        <div class="flag-amt">Jan $17,000 → Mar $32,400 · New payee added Mar</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONTRACTOR TABLE -->
+  <div class="section r">
+    <div class="section-title">08 — Contractor / 1099 Exposure · T4A Required</div>
+    <table class="ctr-table">
+      <thead>
+        <tr>
+          <th>Payee</th>
+          <th>Jan</th>
+          <th>Feb</th>
+          <th>Mar</th>
+          <th>Q1 Total</th>
+          <th>Method</th>
+          <th>T4A / 1099 Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Jason Mercer (Consultant)</td><td class="mono">$6,500</td><td class="mono">$6,500</td><td class="mono">$6,500</td><td class="mono" style="font-weight:700;">$19,500</td><td>Invoice</td><td><span class="tag-1099">⚑ T4A Required</span></td></tr>
+        <tr><td>Jane Smith Design</td><td class="mono">$4,500</td><td class="mono">$4,500</td><td class="mono">$4,500</td><td class="mono" style="font-weight:700;">$13,500</td><td>Invoice</td><td><span class="tag-1099">⚑ T4A Required</span></td></tr>
+        <tr><td>Harper Grey LLP (Legal)</td><td class="mono">—</td><td class="mono">—</td><td class="mono">$11,600</td><td class="mono" style="font-weight:700;">$11,600</td><td>Invoice</td><td><span class="tag-review">Review — law firm</span></td></tr>
+        <tr><td>Sara Okonkwo</td><td class="mono">$3,200</td><td class="mono">$3,200</td><td class="mono">$3,200</td><td class="mono" style="font-weight:700;">$9,600</td><td>e-Transfer ⚑</td><td><span class="tag-1099">⚑ T4A + Docs Required</span></td></tr>
+        <tr><td>Mark Lee Copy</td><td class="mono">$2,800</td><td class="mono">$2,800</td><td class="mono">$2,800</td><td class="mono" style="font-weight:700;">$8,400</td><td>Invoice</td><td><span class="tag-1099">⚑ T4A Required</span></td></tr>
+        <tr><td>P. Nguyen (Freelancer.com)</td><td class="mono">—</td><td class="mono">$1,600</td><td class="mono">$1,600</td><td class="mono" style="font-weight:700;">$3,200</td><td>Platform</td><td><span class="tag-review">Review — platform payments</span></td></tr>
+        <tr><td>D. Foster (New — March)</td><td class="mono">—</td><td class="mono">—</td><td class="mono">$2,200</td><td class="mono" style="font-weight:700;">$2,200</td><td>Invoice</td><td><span class="tag-1099">⚑ T4A Required · Obtain agreement</span></td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;">CRA T4A threshold: $500. All payees above exceed this threshold. Year-end T4A filing required for all except law firm (professional corporation — verify tax status).</p>
+  </div>
+
+  <!-- JOURNAL ENTRIES SAMPLE -->
+  <div class="section r">
+    <div class="section-title">09 — Sample Journal Entries · GAAP Double-Entry</div>
+    <table class="je-table">
+      <thead>
+        <tr><th>Date</th><th>Description</th><th>Entry</th><th>Acct #</th><th style="text-align:right;">Debit</th><th style="text-align:right;">Credit</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">Jan 02</td>
+          <td>ADP Payroll — Full Staff</td>
+          <td><div class="je-dr">Dr. Salaries &amp; Wages</div><div class="je-cr">Cr. Cash / Checking</div></td>
+          <td><div class="je-code">6000</div><div class="je-code" style="padding-left:16px;">1000</div></td>
+          <td class="je-amt">$38,750.00<br>—</td>
+          <td class="je-amt">—<br>$38,750.00</td>
+        </tr>
+        <tr>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">Jan 02</td>
+          <td>ADP Employer Tax Remittance</td>
+          <td><div class="je-dr">Dr. Payroll Tax Expense</div><div class="je-cr">Cr. Payroll Tax Payable</div></td>
+          <td><div class="je-code">6010</div><div class="je-code" style="padding-left:16px;">2200</div></td>
+          <td class="je-amt">$5,312.00<br>—</td>
+          <td class="je-amt">—<br>$5,312.00</td>
+        </tr>
+        <tr style="background:var(--gold-l);">
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">Feb 22</td>
+          <td>Google Analytics 360 Setup <span class="wp-sig-tag" style="font-size:7px;">⚑ REVIEW</span></td>
+          <td><div class="je-dr">Dr. Software &amp; Subscriptions</div><div class="je-cr">Cr. Cash / Checking</div><div class="je-note">⚑ Consider reclassify to Intangible Asset (IAS 38)</div></td>
+          <td><div class="je-code">6300</div><div class="je-code" style="padding-left:16px;">1000</div></td>
+          <td class="je-amt">$12,000.00<br>—</td>
+          <td class="je-amt">—<br>$12,000.00</td>
+        </tr>
+        <tr style="background:var(--red-l);">
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">Mar 23</td>
+          <td>Employee Severance Payment <span class="wp-sig-tag" style="font-size:7px;background:var(--red);">⚑ FLAG</span></td>
+          <td><div class="je-dr">Dr. Salaries &amp; Wages (Unusual)</div><div class="je-cr">Cr. Cash / Checking</div><div class="je-note">⚑ Obtain severance agreement · Confirm disclosure required</div></td>
+          <td><div class="je-code">6000</div><div class="je-code" style="padding-left:16px;">1000</div></td>
+          <td class="je-amt">$12,000.00<br>—</td>
+          <td class="je-amt">—<br>$12,000.00</td>
+        </tr>
+        <tr>
+          <td style="font-family:'IBM Plex Mono',monospace;font-size:10px;">Mar 31</td>
+          <td>Deferred Revenue Adjustment</td>
+          <td><div class="je-dr">Dr. Cash / Checking</div><div class="je-cr">Cr. Deferred Revenue</div><div class="je-note">Period-end reclassification — confirm balance sheet treatment</div></td>
+          <td><div class="je-code">1000</div><div class="je-code" style="padding-left:16px;">2400</div></td>
+          <td class="je-amt">$2,400.00<br>—</td>
+          <td class="je-amt">—<br>$2,400.00</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- AI MEMO SAMPLE -->
+  <div class="section r">
+    <div class="section-title">10 — AI-Generated Memo · CFO Variance Summary</div>
+    <div class="memo-box">
+      <div class="memo-head">
+        <div><div class="memo-type">CFO Variance Memo — AI Generated</div><div class="memo-co">Northgate Creative Inc. · Q1 2024 · Prepared by LedgerAI</div></div>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:8px;color:rgba(255,255,255,.3);">Review before sending</div>
+      </div>
+      <div class="memo-meta">TO: Management · FROM: Accounting (via LedgerAI) · DATE: March 31, 2024 · RE: Q1 2024 Operating Expense Variance Summary</div>
+      <div class="memo-body">
+        <p>Q1 2024 operating expenses totalled $673,869, reflecting a 25.7% increase from January ($203,524) through March ($255,660). The quarter-over-quarter escalation was driven by three converging factors: an advertising ramp-up, expanding contractor engagements, and several significant one-time items requiring management attention.</p>
+        <p>The most significant variance is Advertising &amp; Marketing, which increased 191% from January to March ($13,600 → $39,600), reaching $79,500 for the quarter across Google, Meta, LinkedIn, TikTok, Pinterest, and YouTube platforms. This increase is not accompanied by revenue data in the current GL file — management should confirm that revenue recognition aligns with this spend increase, and that campaign authorization records are on file for the working paper binder.</p>
+        <p>Contractor and professional services expenditure grew 90.6% over the quarter ($17,000 → $32,400), with total Q1 payments of $68,000 across 15 payees. Three items require immediate follow-up: (1) Sara Okonkwo's three payments totalling $9,600 were made by Interac e-Transfer with no invoice reference — obtain invoices and contractor agreement; (2) Harper Grey LLP billed $11,600 in March across two invoices — determine whether litigation-related and assess contingent liability disclosure; (3) new contractor D. Foster engaged in March — confirm agreement and T4A tracking is in place.</p>
+        <p>Two items require accounting policy determinations before finalization: the Google Analytics 360 implementation ($18,000 total) may require capitalization as an intangible asset rather than immediate expensing, and the $12,000 severance payment should be reviewed for employment law compliance and potential financial statement disclosure requirements. All 15 contractor payees exceed the CRA T4A reporting threshold of $500 — confirm year-end T4A slips are being prepared.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- AUDIT TRAIL SAMPLE -->
+  <div class="section r">
+    <div class="section-title">11 — Audit Trail Log (Immutable · CAS 230)</div>
+    <table class="at-table">
+      <thead>
+        <tr><th>Timestamp</th><th>Type</th><th>Action</th><th>Detail</th><th>Before</th><th>After</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2024-03-31 09:02:14</td><td><span class="at-type at-load">Load</span></td><td>File loaded</td><td>northgate-creative-q1-2024.csv · 169 rows</td><td>—</td><td>169 transactions</td></tr>
+        <tr><td>2024-03-31 09:02:15</td><td><span class="at-type at-ai">AI</span></td><td>Auto-categorization run</td><td>135 uncategorized rows processed</td><td>Uncategorized</td><td>13 categories assigned</td></tr>
+        <tr><td>2024-03-31 09:02:44</td><td><span class="at-type at-flag">Flag</span></td><td>Audit flag raised</td><td>GOOGLE ANALYTICS 360 - ANNUAL SETUP — Capitalize vs. expense?</td><td>none</td><td>Review required</td></tr>
+        <tr><td>2024-03-31 09:02:45</td><td><span class="at-type at-flag">Flag</span></td><td>Audit flag raised</td><td>EMPLOYEE OFFBOARDING - SEVERANCE PMT — Unusual item $12,000</td><td>none</td><td>Review required</td></tr>
+        <tr><td>2024-03-31 09:03:11</td><td><span class="at-type at-edit">Edit</span></td><td>Category corrected</td><td>INTERAC E-TRANSFER - SARA OKONKWO</td><td>Miscellaneous</td><td>Contractor / Prof. Services</td></tr>
+        <tr><td>2024-03-31 09:03:44</td><td><span class="at-type at-export">Export</span></td><td>Working Papers PDF exported</td><td>W/P Ref LS-01 + TB-01 + PBC-01 · Q1 YTD</td><td>—</td><td>PDF generated</td></tr>
+        <tr><td>2024-03-31 09:04:02</td><td><span class="at-type at-ai">AI</span></td><td>CFO Memo drafted</td><td>Claude API · CFO Variance Memo · Q1 2024</td><td>—</td><td>Memo generated</td></tr>
+        <tr><td>2024-03-31 09:04:20</td><td><span class="at-type at-export">Export</span></td><td>Trial Balance CSV exported</td><td>13 accounts · Dr = Cr · $673,869.20</td><td>—</td><td>CSV generated</td></tr>
+      </tbody>
+    </table>
+    <p style="font-size:11px;color:var(--muted);margin-top:10px;">All entries are immutable — no edits or deletions are permitted after logging. Log mirrors documentation requirements under CAS 230 / ISA 230.</p>
+  </div>
+
+</div>
+
+<!-- DOWNLOAD BAR -->
+<div class="dl-bar">
+  <div class="dl-text">
+    <strong>Load this file in LedgerAI</strong> and see every output above generated live.<br>
+    169 transactions · Q1 2024 · Northgate Creative Inc. (fictional)
+  </div>
+  <div class="dl-btns">
+    <button class="btn btn-w" onclick="dlFile()">⬇ Download GL File (CSV)</button>
+    <a href="app.html" class="btn btn-r">Open in LedgerAI →</a>
+    <a href="index.html" class="btn btn-ghost">← Back to Landing Page</a>
+  </div>
+</div>
+
+<script>
+// Scroll reveal
+const obs=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in');}),{threshold:.05});
+document.querySelectorAll('.r').forEach(el=>obs.observe(el));
+
+// Spend chart
+const CATS=[
+  {cat:'Payroll (Wages + Tax)',amt:408558,pct:60.6,c:'#c0321a'},
+  {cat:'Advertising & Marketing',amt:79500,pct:11.8,c:'#1c3d7a'},
+  {cat:'Contractor / Prof. Services',amt:68000,pct:10.1,c:'#a87418'},
+  {cat:'Software & Subscriptions',amt:43305,pct:6.4,c:'#1a5c34'},
+  {cat:'Rent & Facilities',amt:21240,pct:3.2,c:'#7a7060'},
+  {cat:'Utilities & Hosting',amt:14965,pct:2.2,c:'#b85c00'},
+  {cat:'Bank & Finance Charges',amt:12998,pct:1.9,c:'#4a6080'},
+  {cat:'Office Supplies',amt:6665,pct:1.0,c:'#888070'},
+  {cat:'Travel',amt:5584,pct:0.8,c:'#606060'},
+  {cat:'Insurance',amt:4642,pct:0.7,c:'#808080'},
+  {cat:'Meals & Entertainment',amt:4085,pct:0.6,c:'#c08040'},
+  {cat:'Miscellaneous',amt:4327,pct:0.6,c:'#aaa090'},
+];
+const sc=document.getElementById('spendChart');
+CATS.forEach(c=>{
+  const row=document.createElement('div');row.className='chart-row';
+  row.innerHTML=`<span class="chart-cat">${c.cat}</span><div class="chart-track"><div class="chart-fill" style="width:0%;background:${c.c}" data-w="${c.pct/.606}"></div></div><span class="chart-val" style="color:${c.c}">$${c.amt.toLocaleString()}</span><span class="chart-pct">${c.pct}%</span>`;
+  sc.appendChild(row);
+});
+setTimeout(()=>document.querySelectorAll('.chart-fill').forEach(f=>f.style.width=f.dataset.w+'%'),400);
+
+// Download
+const CSV_DATA=`Date,Description,Amount,Category,Flag
+2024-01-02,ADP PAYROLL RUN 01022024 - FULL STAFF,38750.00,,
+2024-01-02,ADP EMPLOYER TAX REMITTANCE 01022024,5312.00,,
+2024-01-03,WEWORK - 400 W GEORGIA ST - JAN RENT,6800.00,,
+2024-01-03,WEWORK - PARKING STALL A-14 JAN,280.00,,
+2024-01-04,GOOGLE ADS - ACCOUNT 8834421 JAN,4200.00,Advertising & Marketing,
+2024-01-04,META ADS MANAGER - NORTHGATE_JAN24,3100.00,Advertising & Marketing,
+2024-01-05,JANE SMITH DESIGN - INV #JS-2024-001,4500.00,,
+2024-01-05,MARK LEE COPY - INV #ML-044,2800.00,,
+2024-01-06,AWS - MONTHLY USAGE DEC23 CHARGED JAN,1847.32,,
+2024-01-07,SHOPIFY PLUS - MONTHLY PLATFORM FEE,2000.00,,
+2024-01-07,SHOPIFY - TRANSACTION FEE REVERSAL,-124.50,,
+2024-01-08,ADOBE CC TEAM - 12 SEATS,1788.00,Software & Subscriptions,
+2024-01-08,ADOBE STOCK - 10 IMAGES JAN,79.99,Software & Subscriptions,
+2024-01-09,DELTA AIRLINES 0062341 - TORONTO YYZ,890.00,,
+2024-01-09,DELTA AIRLINES 0062342 - TORONTO YYZ,890.00,,
+2024-01-09,DELTA TRAVEL INSURANCE - CERT 88421,42.00,,
+2024-01-10,WESTIN TORONTO - 2 ROOMS 2 NIGHTS,1240.00,,
+2024-01-10,WESTIN TORONTO - MINIBAR + ROOM SVC,186.40,,
+2024-01-10,UBER CA TORONTO - AIRPORT TRANSFER,67.80,,
+2024-01-11,CLIENT DINNER - CANOE RESTAURANT TO,1240.00,Meals & Entertainment,Meals & entertainment - only 50% tax deductible
+2024-01-11,CLIENT GIFT - TIFFANY & CO TORONTO,380.00,,
+2024-01-12,SLACK - ANNUAL PLAN - 25 USERS,3750.00,Software & Subscriptions,
+2024-01-12,NOTION - TEAM PLAN 20 SEATS,480.00,Software & Subscriptions,
+2024-01-13,STAPLES BUSINESS - ORDER #44821,642.18,,
+2024-01-14,PUROLATOR - BATCH SHIPMENT #99421,189.44,,
+2024-01-15,ADP PAYROLL RUN 01152024 - FULL STAFF,38750.00,,
+2024-01-15,ADP EMPLOYER TAX REMITTANCE 01152024,5312.00,,
+2024-01-15,INTERAC E-TRANSFER - SARA OKONKWO,3200.00,,
+2024-01-16,LINKEDIN ADS - CAMPAIGN Q1-BRAND,2100.00,Advertising & Marketing,
+2024-01-16,LINKEDIN PREMIUM - 5 SEATS,799.95,Software & Subscriptions,
+2024-01-17,SPOTIFY FOR BUSINESS - OFFICE,14.99,,
+2024-01-17,NETFLIX - OFFICE ACCOUNT,22.99,,
+2024-01-18,GOOGLE WORKSPACE - 30 SEATS,360.00,Software & Subscriptions,
+2024-01-18,ZOOM BUSINESS - 25 HOSTS,500.00,Software & Subscriptions,
+2024-01-19,HUBSPOT MARKETING HUB - PROFESSIONAL,890.00,Software & Subscriptions,
+2024-01-19,HUBSPOT - ONBOARDING FEE - ONE TIME,3000.00,,
+2024-01-21,PETTY CASH REIMBURSEMENT - T.CHEN,247.83,,
+2024-01-22,PETTY CASH REIMBURSEMENT - R.PATEL,198.44,,
+2024-01-23,COMCAST BUS INTERNET + PHONE JAN,389.00,,
+2024-01-23,ROGERS WIRELESS - 8 LINES JAN,640.00,,
+2024-01-24,AMEX CORPORATE ANNUAL FEE,550.00,,
+2024-01-24,RBC BUSINESS ACCOUNT FEE JAN,54.00,,
+2024-01-24,RBC WIRE TRANSFER - VENDOR PAYMENT,2400.00,,
+2024-01-25,VENDOR PAYMENT - PRINTCRAFT INC,4200.00,,
+2024-01-25,TEAM LUNCH - WHOLE FOODS CATERING,320.00,Meals & Entertainment,Meals & entertainment - only 50% tax deductible
+2024-01-26,VOLUNTEER DAY EXPENSES - RECEIPT,94.50,,
+2024-01-27,AMAZON BUSINESS - OFFICE SUPPLIES,389.21,,
+2024-01-28,IKEA BUSINESS - OFFICE FURNITURE,2840.00,,
+2024-01-29,ADP PAYROLL RUN 01292024 - FULL STAFF,38750.00,,
+2024-01-29,ADP EMPLOYER TAX REMITTANCE 01292024,5312.00,,
+2024-01-29,CONSULTANT - JASON MERCER - INV #JM-7,6500.00,,
+2024-01-30,INSURANCE - COMMERCIAL LIABILITY Q1,1800.00,,
+2024-01-30,INSURANCE - CYBER RISK POLICY Q1,1200.00,,
+2024-01-31,STRIPE FEES - JAN PROCESSING,934.12,,
+2024-01-31,SHOPIFY - THEME PURCHASE,300.00,,
+2024-01-31,AWS - PARTIAL CREDIT APPLIED,-200.00,,
+2024-02-01,ADP PAYROLL RUN 02012024 - FULL STAFF,38750.00,,
+2024-02-01,ADP EMPLOYER TAX REMITTANCE 02012024,5312.00,,
+2024-02-01,WEWORK - 400 W GEORGIA ST - FEB RENT,6800.00,,
+2024-02-01,WEWORK - PARKING STALL A-14 FEB,280.00,,
+2024-02-02,GOOGLE ADS - ACCOUNT 8834421 FEB,5800.00,Advertising & Marketing,
+2024-02-02,META ADS MANAGER - NORTHGATE_FEB24,4900.00,Advertising & Marketing,
+2024-02-03,JANE SMITH DESIGN - INV #JS-2024-002,4500.00,,
+2024-02-03,MARK LEE COPY - INV #ML-045,2800.00,,
+2024-02-04,AWS - MONTHLY USAGE JAN24,2241.88,,
+2024-02-05,TIKTOK ADS - NORTHGATE Q1 CAMPAIGN,2200.00,Advertising & Marketing,
+2024-02-05,PINTEREST ADS - NORTHGATE FEB,800.00,Advertising & Marketing,
+2024-02-06,DELTA AIRLINES 0072201 - VANCOUVER,620.00,,
+2024-02-06,AIRBNB - VANCOUVER CONF 3 NIGHTS,890.00,,
+2024-02-07,CONFERENCE REGISTRATION - CMTO 2024,2400.00,,
+2024-02-07,CONFERENCE - CMTO GALA DINNER,180.00,Meals & Entertainment,Meals & entertainment - only 50% tax deductible
+2024-02-08,INTERAC E-TRANSFER - SARA OKONKWO,3200.00,,
+2024-02-08,FREELANCER.COM - INV #F-88421 P.NGUYEN,1600.00,,
+2024-02-09,SHOPIFY PLUS - MONTHLY PLATFORM FEE,2000.00,,
+2024-02-09,SHOPIFY - APP STORE - KLAVIYO,300.00,,
+2024-02-09,SHOPIFY - APP STORE - RECHARGE,200.00,,
+2024-02-10,CHATGPT PLUS - 10 SEATS,200.00,,
+2024-02-10,MIDJOURNEY - TEAM PLAN,96.00,,
+2024-02-10,ANTHROPIC CLAUDE - API USAGE JAN,312.44,,
+2024-02-11,STRIPE FEES - JAN RECONCILED,934.12,,
+2024-02-11,STRIPE FEES - JAN PROCESSING,-934.12,,
+2024-02-12,LINKEDIN ADS - CAMPAIGN Q1-PRODUCT,3400.00,Advertising & Marketing,
+2024-02-13,STAPLES BUSINESS - ORDER #45012,218.75,,
+2024-02-14,TEAM VALENTINES - CATERING,445.00,Meals & Entertainment,Meals & entertainment - only 50% tax deductible
+2024-02-15,ADP PAYROLL RUN 02152024 - FULL STAFF,38750.00,,
+2024-02-15,ADP EMPLOYER TAX REMITTANCE 02152024,5312.00,,
+2024-02-16,COMCAST BUS INTERNET + PHONE FEB,389.00,,
+2024-02-16,ROGERS WIRELESS - 8 LINES FEB,640.00,,
+2024-02-17,VENDOR PAYMENT - PRINTCRAFT INC,6800.00,,
+2024-02-18,AMAZON BUSINESS - OFFICE SUPPLIES,204.33,,
+2024-02-19,PETTY CASH REIMBURSEMENT - T.CHEN,312.45,,
+2024-02-19,PETTY CASH REIMBURSEMENT - A.WILLIAMS,88.20,,
+2024-02-20,CONSULTANT - JASON MERCER - INV #JM-8,6500.00,,
+2024-02-21,STRIPE FEES - FEB PROCESSING,1102.88,,
+2024-02-22,GOOGLE ANALYTICS 360 - ANNUAL SETUP,12000.00,,
+2024-02-22,SEMRUSH - ANNUAL PLAN,2400.00,Software & Subscriptions,
+2024-02-23,RBC BUSINESS ACCOUNT FEE FEB,54.00,,
+2024-02-23,RBC WIRE TRANSFER - VENDOR PAYMENT,1800.00,,
+2024-02-24,AMEX LATE PAYMENT FEE,39.00,,
+2024-02-24,AMEX FOREIGN TRANSACTION FEE - USD,84.22,,
+2024-02-25,INSURANCE PREMIUM - MONTHLY INSTALLMENT,800.00,,
+2024-02-26,HUBSPOT MARKETING HUB - FEB,890.00,Software & Subscriptions,
+2024-02-27,SPOTIFY FOR BUSINESS - OFFICE,14.99,,
+2024-02-27,NETFLIX - OFFICE ACCOUNT,22.99,,
+2024-02-28,ADP PAYROLL RUN 02282024 - FULL STAFF,38750.00,,
+2024-02-28,ADP EMPLOYER TAX REMITTANCE 02282024,5312.00,,
+2024-02-29,EMPLOYEE RECOGNITION AWARDS Q1,890.00,,
+2024-02-29,SLACK ADDITIONAL STORAGE - ONE TIME,149.00,Software & Subscriptions,
+2024-03-01,ADP PAYROLL RUN 03012024 - FULL STAFF,38750.00,,
+2024-03-01,ADP EMPLOYER TAX REMITTANCE 03012024,5312.00,,
+2024-03-01,WEWORK - 400 W GEORGIA ST - MAR RENT,6800.00,,
+2024-03-01,WEWORK - PARKING STALL A-14 MAR,280.00,,
+2024-03-02,GOOGLE ADS - ACCOUNT 8834421 MAR,8100.00,Advertising & Marketing,
+2024-03-02,META ADS MANAGER - NORTHGATE_MAR24,6200.00,Advertising & Marketing,
+2024-03-03,JANE SMITH DESIGN - INV #JS-2024-003,4500.00,,
+2024-03-03,MARK LEE COPY - INV #ML-046,2800.00,,
+2024-03-04,AWS - MONTHLY USAGE FEB24,2988.44,,
+2024-03-04,SHOPIFY PLUS - MONTHLY PLATFORM FEE,2000.00,,
+2024-03-05,LINKEDIN ADS - Q1 FINAL PUSH,5200.00,Advertising & Marketing,
+2024-03-05,YOUTUBE ADS - BRAND AWARENESS Q1,2800.00,Advertising & Marketing,
+2024-03-06,INTERAC E-TRANSFER - SARA OKONKWO,3200.00,,
+2024-03-06,FREELANCER.COM - INV #F-91200 P.NGUYEN,1600.00,,
+2024-03-06,NEW CONTRACTOR - INV #D.FOSTER-001,2200.00,,
+2024-03-07,DELTA AIRLINES 0081442 - MONTREAL,480.00,,
+2024-03-07,HOTEL LE GERMAIN MONTREAL - 1 NIGHT,320.00,,
+2024-03-08,CLIENT LUNCH - TOQUÉ MONTREAL,890.00,Meals & Entertainment,Meals & entertainment - only 50% tax deductible
+2024-03-08,CLIENT GIFT - WINE RACK ORDER #88421,420.00,,
+2024-03-09,STRIPE FEES - FEB RECONCILED,1102.88,,
+2024-03-09,STRIPE FEES - MAR PROCESSING,1344.22,,
+2024-03-10,SEMRUSH - OVERAGE CHARGES FEB,180.00,Software & Subscriptions,
+2024-03-10,CHATGPT PLUS - 10 SEATS MAR,200.00,,
+2024-03-10,MIDJOURNEY - TEAM PLAN MAR,96.00,,
+2024-03-10,ANTHROPIC CLAUDE - API USAGE FEB,489.88,,
+2024-03-11,GOOGLE ANALYTICS 360 - SETUP PHASE 2,6000.00,,
+2024-03-12,CONSULTANT - JASON MERCER - INV #JM-9,6500.00,,
+2024-03-13,AMAZON BUSINESS - OFFICE SUPPLIES,341.12,,
+2024-03-13,AMAZON - STANDING DESK X2 - OFFICE,1840.00,,
+2024-03-14,TEAM LUNCH - NANDO'S CATERING,210.00,Meals & Entertainment,Meals & entertainment - only 50% tax deductible
+2024-03-15,ADP PAYROLL RUN 03152024 - FULL STAFF,38750.00,,
+2024-03-15,ADP EMPLOYER TAX REMITTANCE 03152024,5312.00,,
+2024-03-15,PETTY CASH REIMBURSEMENT - T.CHEN,198.75,,
+2024-03-15,PETTY CASH REIMBURSEMENT - B.SANTOS,441.00,,
+2024-03-16,COMCAST BUS INTERNET + PHONE MAR,389.00,,
+2024-03-16,ROGERS WIRELESS - 8 LINES MAR,640.00,,
+2024-03-17,VENDOR PAYMENT - PRINTCRAFT INC,9200.00,,
+2024-03-18,INSURANCE PREMIUM - MONTHLY INSTALLMENT,800.00,,
+2024-03-18,RBC BUSINESS ACCOUNT FEE MAR,54.00,,
+2024-03-18,RBC WIRE TRANSFER - CLIENT REFUND,1200.00,,
+2024-03-19,TIKTOK ADS - Q1 FINAL PUSH,3800.00,Advertising & Marketing,
+2024-03-19,PINTEREST ADS - Q1 CLOSE,1100.00,Advertising & Marketing,
+2024-03-20,VENDOR PAYMENT - STOCK PHOTO LICENSE,800.00,,
+2024-03-21,PETTY CASH REIMBURSEMENT - R.PATEL,166.30,,
+2024-03-22,LINKEDIN ADS - MARCH EXTENSION,2400.00,Advertising & Marketing,
+2024-03-23,EMPLOYEE OFFBOARDING - SEVERANCE PMT,12000.00,,
+2024-03-24,LEGAL FEES - HARPER GREY LLP INV 2024-14,8400.00,,
+2024-03-24,LEGAL FEES - HARPER GREY LLP INV 2024-15,3200.00,,
+2024-03-25,XERO ACCOUNTING SOFTWARE - ANNUAL,840.00,,
+2024-03-25,HUBSPOT MARKETING HUB - MAR,890.00,Software & Subscriptions,
+2024-03-26,STRIPE FEES - MAR RECONCILIATION,1344.22,,
+2024-03-26,STRIPE FEES - MAR PROCESSING,-1344.22,,
+2024-03-27,AWS - RESERVED INSTANCE PURCHASE,4800.00,,
+2024-03-28,SPOTIFY FOR BUSINESS - OFFICE,14.99,,
+2024-03-28,NETFLIX - OFFICE ACCOUNT,22.99,,
+2024-03-29,ADP PAYROLL RUN 03292024 - FULL STAFF,38750.00,,
+2024-03-29,ADP EMPLOYER TAX REMITTANCE 03292024,5312.00,,
+2024-03-29,EMPLOYEE RECOGNITION - Q1 BONUS GIFTS,1240.00,,
+2024-03-30,YEAR END CLEANUP - MISC ADJUSTMENTS,450.00,,
+2024-03-31,DEFERRED REVENUE ADJUSTMENT,-2400.00,,
+2024-03-31,PREPAID EXPENSE RECLASSIFICATION,-1800.00,,`;
+
+function dlFile(){
+  const b=new Blob([CSV_DATA],{type:'text/csv'});
+  const u=URL.createObjectURL(b);
+  const a=document.createElement('a');
+  a.href=u;a.download='northgate-creative-q1-2024.csv';
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(u);
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,34 @@
+Date,Description,Amount,Category,Flag
+2024-01-02,ADP Payroll Processing - Staff Salaries,12500.00,Payroll,none
+2024-01-02,ADP Payroll Processing - Staff Salaries,12500.00,Payroll,Possible duplicate — verify payroll ran once
+2024-01-03,WeWork Office Lease - January,3200.00,Rent & Facilities,none
+2024-01-04,Google Ads Campaign - Q1 Brand,2200.00,Advertising & Marketing,none
+2024-01-05,Meta Ads Manager - January Budget,1800.00,Advertising & Marketing,none
+2024-01-05,Meta Ads Manager - January Budget,1800.00,Advertising & Marketing,Possible duplicate — check Meta billing
+2024-01-06,Jane Smith - Contractor Invoice #1041,1800.00,Contractor / Professional Services,Contractor — issue 1099 if annual total exceeds $600
+2024-01-07,AWS Cloud Services - January,312.00,Utilities & Hosting,none
+2024-01-08,Slack Pro - Annual Plan Prorated,87.50,Software & Subscriptions,none
+2024-01-09,Notion Team Plan,24.00,Software & Subscriptions,none
+2024-01-10,Client Lunch - The Capital Grille,284.00,Meals & Entertainment,Meals & entertainment — only 50% tax deductible
+2024-01-11,Delta Airlines - NYC Conference,640.00,Travel,none
+2024-01-11,Marriott Hotels - NYC 2 nights,398.00,Travel,none
+2024-01-12,Mark Lee - Contractor Invoice #77,3500.00,Contractor / Professional Services,Contractor — issue 1099 if annual total exceeds $600
+2024-01-14,Adobe Creative Cloud - Team,599.00,Software & Subscriptions,none
+2024-01-15,ADP Payroll Processing - Staff Salaries,12500.00,Payroll,none
+2024-01-15,Staples - Office Supplies Order,143.22,Office Supplies,none
+2024-01-16,Chase Bank - Wire Transfer Fee,35.00,Bank & Finance Charges,none
+2024-01-17,LinkedIn Premium - 3 seats,159.99,Software & Subscriptions,none
+2024-01-18,Sara Okonkwo - Contractor Invoice #22,2200.00,Contractor / Professional Services,Contractor — issue 1099 if annual total exceeds $600
+2024-01-19,Zoom Business Plan - Annual Prorated,166.50,Software & Subscriptions,none
+2024-01-20,WeWork Office Lease - January,3200.00,Rent & Facilities,Possible duplicate — rent already charged Jan 3
+2024-01-21,Client Dinner - Nobu Restaurant,412.00,Meals & Entertainment,Meals & entertainment — only 50% tax deductible
+2024-01-22,Google Workspace - 10 seats,120.00,Software & Subscriptions,none
+2024-01-22,Uber for Business - Client Visits,67.40,Travel,none
+2024-01-23,FedEx - Client Document Delivery,28.50,Office Supplies,none
+2024-01-24,HubSpot CRM - Monthly,890.00,Software & Subscriptions,none
+2024-01-25,Comcast Business Internet,189.00,Utilities & Hosting,none
+2024-01-26,American Express Annual Fee,250.00,Bank & Finance Charges,none
+2024-01-28,Team Lunch - Chipotle,98.75,Meals & Entertainment,Meals & entertainment — only 50% tax deductible
+2024-01-29,ADP Payroll Processing - Staff Salaries,12500.00,Payroll,none
+2024-01-30,Miscellaneous Supplies - Amazon,54.32,Miscellaneous,Review — reclassify if possible
+2024-01-31,Dropbox Business - Annual Prorated,75.00,Software & Subscriptions,none

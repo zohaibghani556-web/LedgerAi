@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>LedgerAI — Professional Bookkeeping</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-left">
+    <div class="logo"><span class="logo-dot"></span>Ledger<em>AI</em></div>
+    <div class="topbar-company" id="topbarCompany">No company loaded</div>
+  </div>
+  <div class="topbar-right">
+    <button class="topbar-btn" style="background:var(--blue);color:white;border:none;" onclick="initPlaid()" title="Connect bank account via Plaid">🏦 Connect Bank</button>
+    <label class="topbar-btn topbar-btn-ghost" style="cursor:pointer;position:relative;">
+      ＋ Load File <input type="file" id="fileInputTopbar" accept=".csv,.xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;"/>
+    </label>
+    <button class="topbar-btn topbar-btn-ghost" onclick="showView('settings')">⚙ Settings</button>
+  </div>
+</div>
+<div class="app-body">
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigation</div>
+      <button class="nav-item active" id="nav-dashboard"    onclick="showView('dashboard')"><span class="nav-icon">📊</span>Dashboard</button>
+      <button class="nav-item" id="nav-transactions"        onclick="showView('transactions')"><span class="nav-icon">📋</span>Transactions</button>
+      <button class="nav-item" id="nav-trialbalance"        onclick="showView('trialbalance')"><span class="nav-icon">⚖️</span>Trial Balance</button>
+      <button class="nav-item" id="nav-coa"                 onclick="showView('coa')"><span class="nav-icon">📖</span>Chart of Accounts</button>
+      <button class="nav-item" id="nav-flags"               onclick="showView('flags')"><span class="nav-icon">⚠️</span>Flagged Items<span class="nav-badge" id="sidebarFlagBadge">0</span></button>
+      <button class="nav-item" id="nav-settings"            onclick="showView('settings')"><span class="nav-icon">⚙️</span>Settings</button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Reports</div>
+      <button class="nav-item" id="nav-pl"           onclick="showView('pl')"><span class="nav-icon">📈</span>P&amp;L Statement</button>
+      <button class="nav-item" id="nav-cashflow"     onclick="showView('cashflow')"><span class="nav-icon">💧</span>Cash Flow</button>
+      <button class="nav-item" id="nav-budget"       onclick="showView('budget')"><span class="nav-icon">🎯</span>Budget vs Actual</button>
+      <button class="nav-item" id="nav-reconcile"    onclick="showView('reconcile')"><span class="nav-icon">🔗</span>Reconciliation</button>
+      <button class="nav-item" id="nav-duplicates"   onclick="showView('duplicates')"><span class="nav-icon">👥</span>Duplicates<span class="nav-badge" id="dupBadge" style="display:none">0</span></button>
+      <button class="nav-item" id="nav-audit"        onclick="showView('audit')"><span class="nav-icon">📋</span>Audit Trail<span class="nav-badge" id="auditBadge" style="background:var(--green)">0</span></button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Professional Tools</div>
+      <button class="nav-item" id="nav-workingpapers" onclick="showView('workingpapers')"><span class="nav-icon">📄</span>Working Papers<span class="nav-badge" style="background:var(--accent);color:white;font-size:8px;">NEW</span></button>
+      <button class="nav-item" id="nav-memo"           onclick="showView('memo')"><span class="nav-icon">✍️</span>AI Memo Drafting<span class="nav-badge" style="background:var(--accent);color:white;font-size:8px;">NEW</span></button>
+    </div>
+    <div class="sidebar-section" id="periodSection" style="display:none;">
+      <div class="sidebar-section-label">Loaded Periods</div>
+      <div class="period-ytd active" id="ytdBtn" onclick="activatePeriod('__ytd__')">📅 Year-to-Date</div>
+      <div class="period-list" id="periodList"></div>
+    </div>
+    <div class="sidebar-footer">LedgerAI v4.0<br>Powered by Claude AI<br>Demo purposes only</div>
+  </aside>
+  <main class="main">
+    <!-- ONBOARDING -->
+    <div id="view-onboard" class="onboard">
+      <div class="onboard-icon">📒</div>
+      <h2>Welcome to LedgerAI</h2>
+      <p>Upload any accounting file — bank statement, QuickBooks export, GL extract, or simple CSV. LedgerAI auto-detects the format and generates GAAP-compliant journal entries, a trial balance, and full financial reports.</p>
+      <div class="upload-drop" id="mainDrop">
+        <input type="file" id="fileInputMain" accept=".csv,.xlsx,.xls"/>
+        <div class="upload-drop-title">Drop your file here to begin</div>
+        <div class="upload-drop-hint">CSV · XLSX · XLS — any format, auto-detected</div>
+        <div class="upload-formats">
+          <span class="fmt-pill">CSV</span><span class="fmt-pill">XLSX</span><span class="fmt-pill">XLS</span>
+        </div>
+      </div>
+      <div style="margin-top:28px;display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);max-width:680px;width:100%;border:1px solid var(--rule);border-radius:2px;overflow:hidden;">
+        <div style="background:var(--paper);padding:14px 16px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px;">Standard / Simple</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink2);line-height:1.8;">Date, Description,<br>Amount, Category</div>
+        </div>
+        <div style="background:var(--paper);padding:14px 16px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px;">Bank Statement</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink2);line-height:1.8;">Split Debit/Credit cols,<br>junk header rows OK</div>
+        </div>
+        <div style="background:var(--paper);padding:14px 16px;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;color:var(--muted);margin-bottom:8px;">QuickBooks / Sage</div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--ink2);line-height:1.8;">Num, Name, Memo,<br>Debit, Credit cols</div>
+        </div>
+      </div>
+    </div>
+    <!-- DASHBOARD -->
+    <div id="view-dashboard" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Dashboard</h1><p id="dashPeriodLabel">—</p></div>
+        <div class="page-header-actions"><button class="btn" onclick="exportPDF()">⬇ PDF Report</button></div>
+      </div>
+      <div class="content">
+        <div class="stat-row" id="statRow">
+          <div class="stat-card c-total"><div class="stat-eyebrow">Total Expenses</div><div class="stat-num" id="statTotal">$0</div><div class="stat-sub" id="statPeriod">—</div></div>
+          <div class="stat-card c-count"><div class="stat-eyebrow">Transactions</div><div class="stat-num" id="statCount">0</div><div class="stat-sub">reviewed</div></div>
+          <div class="stat-card c-flagged"><div class="stat-eyebrow">Flagged Items</div><div class="stat-num" id="statFlagged">0</div><div class="stat-sub">require review</div></div>
+          <div class="stat-card c-balance"><div class="stat-eyebrow">Trial Balance</div><div class="stat-num" id="statBalance">—</div><div class="stat-sub" id="statBalanceSub">—</div></div>
+        </div>
+        <div class="two-col" style="margin-top:1px;">
+          <div class="panel" id="panelChart"><div class="panel-header"><span class="panel-title">Spending by Category</span></div><div class="panel-body"><canvas id="catChart" style="max-height:360px;"></canvas></div></div>
+          <div class="panel" id="panelBreakdown"><div class="panel-header"><span class="panel-title">Category Breakdown</span></div><div class="panel-body" id="catBreakdown" style="max-height:440px;overflow-y:auto;"></div></div>
+        </div>
+      </div>
+    </div>
+    <!-- TRANSACTIONS -->
+    <div id="view-transactions" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Transactions</h1><p id="txnPeriodLabel">—</p></div>
+        <div class="page-header-actions">
+          <button class="btn btn-gold" onclick="aiCategorizeAll()" title="Run AI on all uncategorized transactions">⚡ AI Categorize All</button>
+          <button class="btn btn-green" onclick="toggleAddForm()">＋ Add Row</button>
+          <button class="btn" onclick="exportCSV()">⬇ CSV</button>
+          <button class="btn btn-solid" onclick="exportPDF()">⬇ PDF</button>
+        </div>
+      </div>
+      <div class="toolbar">
+        <div class="search-wrap"><input class="search-input" id="searchInput" placeholder="Search transactions…" oninput="applyFilters()"/></div>
+        <select class="filter-select" id="filterCategory" onchange="applyFilters()"><option value="">All Categories</option></select>
+        <select class="filter-select" id="filterFlag" onchange="applyFilters()">
+          <option value="">All Items</option><option value="flagged">Flagged Only</option><option value="clear">Clear Only</option>
+        </select>
+        <div class="toolbar-count" id="txnCount">0 transactions</div>
+      </div>
+      <div class="edit-bar" id="editBar" style="display:none;">
+        ✎ &nbsp;<strong id="editCountLabel">0 edits</strong>
+        <span>— click any cell to edit · exports reflect changes</span>
+        <button class="btn btn-sm btn-red" style="margin-left:auto;" onclick="revertAll()">↩ Revert All</button>
+      </div>
+      <div class="add-form" id="addForm">
+        <div class="fg"><label>Date</label><input id="nDate" placeholder="2024-01-31"/></div>
+        <div class="fg" style="flex:2"><label>Description</label><input id="nDesc" placeholder="Vendor / memo"/></div>
+        <div class="fg"><label>Amount</label><input id="nAmt" type="number" placeholder="0.00" step="0.01"/></div>
+        <div class="fg" style="flex:1.5"><label>Category</label><select id="nCat"></select></div>
+        <div class="fg" style="flex:2"><label>Flag (optional)</label><input id="nFlag" placeholder="Leave blank if clear"/></div>
+        <div class="fg"><label>&nbsp;</label><button class="btn btn-green" onclick="addRow()">Add</button></div>
+        <div class="fg"><label>&nbsp;</label><button class="btn" onclick="toggleAddForm()">Cancel</button></div>
+      </div>
+      <div class="tbl-wrap">
+        <table id="txnTable">
+          <thead><tr>
+            <th onclick="sortTable('date')">Date <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('description')">Description <span class="sort-arrow">↕</span></th>
+            <th onclick="sortTable('amount')">Amount <span class="sort-arrow">↕</span></th>
+            <th>Category</th>
+            <th>Journal Entry (Account Codes)</th>
+            <th>Flag</th>
+            <th></th>
+          </tr></thead>
+          <tbody id="txnBody"></tbody>
+        </table>
+      </div>
+    </div>
+    <!-- TRIAL BALANCE -->
+    <div id="view-trialbalance" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Trial Balance</h1><p id="tbPeriodLabel">—</p></div>
+        <div class="page-header-actions">
+          <button class="btn" onclick="exportTrialBalanceCSV()">⬇ CSV</button>
+          <button class="btn btn-solid" onclick="exportTrialBalancePDF()">⬇ PDF</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="full-col panel in">
+          <div class="tb-wrap">
+            <table class="tb-table">
+              <thead><tr><th>Account Name</th><th>Acct #</th><th>Type</th><th>Debit</th><th>Credit</th></tr></thead>
+              <tbody id="tbBody"></tbody>
+              <tfoot><tr class="tb-tfoot"><td colspan="3">TOTALS</td><td id="tbTotalDr">$0.00</td><td id="tbTotalCr">$0.00</td></tr></tfoot>
+            </table>
+          </div>
+          <div style="padding:0 0 0;"><div id="tbNotice" class="tb-notice" style="display:none;margin:16px;"></div></div>
+        </div>
+      </div>
+    </div>
+    <!-- CHART OF ACCOUNTS -->
+    <div id="view-coa" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Chart of Accounts</h1><p>GAAP-aligned account structure used for all journal entries</p></div>
+      </div>
+      <div class="content">
+        <div class="full-col panel in">
+          <div class="panel-header"><span class="panel-title">Standard Account Codes — Double-Entry Bookkeeping</span></div>
+          <div class="panel-body">
+            <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.7;">Every journal entry uses these standardized GAAP account codes. Debits increase expense and asset accounts. Credits increase liability, equity, and revenue accounts.</p>
+            <div style="overflow-x:auto;"><table class="coa-table" id="coaTable"></table></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- FLAGS -->
+    <div id="view-flags" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Flagged Items</h1><p id="flagPeriodLabel">Transactions requiring manual review</p></div>
+      </div>
+      <div class="content"><div id="flagsContainer"></div></div>
+    </div>
+    <!-- SETTINGS -->
+    <div id="view-settings" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Settings</h1><p>Company profile &amp; preferences</p></div>
+        <div class="page-header-actions"><button class="btn btn-solid" onclick="saveSettings()">Save Settings</button></div>
+      </div>
+      <div class="content">
+        <div class="full-col panel in">
+          <div class="panel-header"><span class="panel-title">Company Information</span></div>
+          <div class="panel-body">
+            <div class="settings-grid">
+              <div class="settings-section-title">Company Profile</div>
+              <div class="settings-field"><label>Company Name</label><input id="sCompany" placeholder="e.g. Bright Side Creative LLC"/></div>
+              <div class="settings-field"><label>Industry</label>
+                <select id="sIndustry">
+                  <option>Marketing / Creative Agency</option><option>Retail / E-commerce</option>
+                  <option>Professional Services</option><option>Restaurant / Hospitality</option>
+                  <option>Technology / SaaS</option><option>Construction / Trades</option>
+                  <option>Healthcare</option><option>Non-profit</option><option>Other</option>
+                </select>
+              </div>
+              <div class="settings-field"><label>Fiscal Year Start</label>
+                <select id="sFiscalYear">
+                  <option value="01">January (Calendar Year)</option><option value="04">April</option>
+                  <option value="07">July</option><option value="10">October</option>
+                </select>
+              </div>
+              <div class="settings-field"><label>Currency</label>
+                <select id="sCurrency">
+                  <option value="USD">USD — US Dollar ($)</option><option value="CAD">CAD — Canadian Dollar (CA$)</option>
+                  <option value="GBP">GBP — British Pound (£)</option><option value="EUR">EUR — Euro (€)</option>
+                  <option value="AUD">AUD — Australian Dollar (A$)</option>
+                </select>
+              </div>
+              <div class="settings-divider"></div>
+              <div class="settings-section-title">AI Configuration</div>
+              <div class="settings-field" style="grid-column:1/-1;"><label>Claude API Key</label>
+                <input id="sApiKey" type="password" placeholder="sk-ant-api03-…"/>
+                <p class="settings-note">Required to enable AI categorization and memo drafting. Stored in memory only — never saved to disk.</p>
+              </div>
+              <div class="settings-field"><label>AI Mode</label>
+                <select id="sAiMode">
+                  <option value="auto">Auto — categorize all uncategorized</option>
+                  <option value="off">Off — rules engine only</option>
+                </select>
+              </div>
+              <div class="settings-divider" style="grid-column:1/-1;"></div>
+              <div class="settings-section-title" style="grid-column:1/-1;">Bank Connection (Plaid)</div>
+              <div class="settings-field" style="grid-column:1/-1;"><label>Plaid Link Token</label>
+                <input id="sPlaidToken" type="password" placeholder="link-sandbox-…"/>
+                <p class="settings-note">Get a free Link Token from <a href="https://dashboard.plaid.com" target="_blank" style="color:var(--blue);">dashboard.plaid.com</a> — use the Sandbox environment for testing with demo banks. In Sandbox, any username/password works. <strong>Without a token, Connect Bank loads demo data.</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- P&L STATEMENT -->
+    <div id="view-pl" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>P&amp;L Statement</h1><p id="plPeriodLabel">—</p></div>
+        <div class="page-header-actions">
+          <button class="btn" onclick="exportPLCSV()">&#8595; CSV</button>
+          <button class="btn btn-solid" onclick="exportPLPDF()">&#8595; PDF</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="pl-notice"><strong>Revenue note:</strong> Transaction files contain expenses only. Enter total revenue for this period below to generate a complete P&amp;L.</div>
+        <div class="pl-revenue-input">
+          <label>Total Revenue for Period <span id="plPeriodSpan"></span></label>
+          <div style="display:flex;gap:10px;align-items:center;margin-top:8px;">
+            <input id="plRevenueInput" type="number" placeholder="0.00" step="0.01" oninput="renderPL()"/>
+            <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);">Updates live as you type</span>
+          </div>
+        </div>
+        <div id="plStatement"></div>
+      </div>
+    </div>
+
+    <!-- CASH FLOW -->
+    <div id="view-cashflow" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Cash Flow Statement</h1><p id="cfPeriodLabel">—</p></div>
+        <div class="page-header-actions"><button class="btn btn-solid" onclick="exportCFPDF()">&#8595; PDF</button></div>
+      </div>
+      <div class="content" id="cfContent"></div>
+    </div>
+
+    <!-- BUDGET VS ACTUAL -->
+    <div id="view-budget" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Budget vs Actual</h1><p id="bvaPeriodLabel">—</p></div>
+        <div class="page-header-actions">
+          <button class="btn btn-green" onclick="saveBudgets()">Save Budgets</button>
+          <button class="btn btn-solid" onclick="exportBVAPDF()">&#8595; PDF</button>
+        </div>
+      </div>
+      <div class="content">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.6;">Set a monthly budget per category. Green = under budget. Red = over budget.</p>
+        <div id="bvaTable"></div>
+      </div>
+    </div>
+
+    <!-- RECONCILIATION -->
+    <div id="view-reconcile" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Bank Reconciliation</h1><p id="reconPeriodLabel">—</p></div>
+        <div class="page-header-actions"><button class="btn btn-solid" onclick="exportReconPDF()">&#8595; PDF Report</button></div>
+      </div>
+      <div class="content">
+        <div class="recon-intro"><strong>How it works:</strong> Your ledger entries are on the left. Upload a separate bank statement CSV on the right. LedgerAI matches by amount and date, then flags anything unmatched on either side.</div>
+        <div class="recon-upload-bar">
+          <div>
+            <div class="recon-col-title">&#128210; Ledger Entries</div>
+            <div id="reconLedgerCount" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:4px;"></div>
+          </div>
+          <div style="font-size:24px;color:var(--rule);">&#8644;</div>
+          <div>
+            <div class="recon-col-title">&#127968; Bank Statement</div>
+            <label class="btn btn-blue" style="cursor:pointer;position:relative;">
+              Upload Bank CSV <input type="file" id="bankFileInput" accept=".csv,.xlsx,.xls" style="position:absolute;inset:0;opacity:0;cursor:pointer;" onchange="handleBankFile(event)"/>
+            </label>
+            <div id="reconBankCount" style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);margin-top:8px;"></div>
+          </div>
+          <div><button class="btn btn-solid" onclick="runReconciliation()">&#9654; Run Reconciliation</button></div>
+        </div>
+        <div id="reconResults"></div>
+      </div>
+    </div>
+
+    <!-- DUPLICATES -->
+    <div id="view-duplicates" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Duplicate Detector</h1><p id="dupPeriodLabel">—</p></div>
+        <div class="page-header-actions"><button class="btn btn-solid" onclick="runDuplicateDetection()">&#128269; Re-scan</button></div>
+      </div>
+      <div class="content" id="dupContent"></div>
+    </div>
+
+    <!-- AUDIT TRAIL -->
+    <div id="view-audit" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>Audit Trail</h1><p>Complete log of all changes and actions</p></div>
+        <div class="page-header-actions">
+          <button class="btn" onclick="clearAuditLog()">Clear Log</button>
+          <button class="btn btn-solid" onclick="exportAuditPDF()">&#8595; PDF</button>
+        </div>
+      </div>
+      <div class="content">
+        <div style="background:var(--green-l);border:1px solid rgba(30,102,64,0.2);padding:12px 18px;border-radius:2px;margin-bottom:20px;font-size:13px;color:var(--green);line-height:1.6;">
+          <strong>What is an audit trail?</strong> In accounting and assurance work, an audit trail documents every change made to financial records — who changed what, when, and what it was before. This is a core requirement for audit readiness and internal controls.
+        </div>
+        <div class="full-col panel in">
+          <div class="panel-header">
+            <span class="panel-title">Activity Log</span>
+            <span id="auditEntryCount" style="font-family:'IBM Plex Mono',monospace;font-size:10px;color:var(--muted);"></span>
+          </div>
+          <div id="auditLogBody"></div>
+        </div>
+      </div>
+    </div>
+    <!-- WORKING PAPERS -->
+    <div id="view-workingpapers" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left">
+          <h1>Working Papers</h1>
+          <p id="wpPeriodLabel">Lead Schedule · Trial Balance · PBC Checklist</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-gold" onclick="renderWorkingPapers()">↻ Refresh</button>
+          <button class="btn btn-solid" onclick="exportWorkingPapersPDF()">⬇ PDF Export</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="wp-controls panel in" style="padding:14px 18px;margin-bottom:1px;display:flex;gap:20px;align-items:flex-end;flex-wrap:wrap;">
+          <div>
+            <label style="font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:5px;">Materiality Threshold ($)</label>
+            <input id="wpMateriality" type="number" value="5000" step="500" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 10px;border:1px solid var(--rule);background:var(--paper);width:120px;" onchange="renderWorkingPapers()"/>
+          </div>
+          <div>
+            <label style="font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:5px;">Variance % Threshold</label>
+            <input id="wpVarPct" type="number" value="15" step="5" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:6px 10px;border:1px solid var(--rule);background:var(--paper);width:100px;" onchange="renderWorkingPapers()"/>
+          </div>
+          <p style="font-size:11px;color:var(--muted);line-height:1.6;max-width:440px;">Load two periods (e.g. January + February) to enable prior-period variance analysis. W/P references follow standard working paper binder format.</p>
+        </div>
+        <div id="wpContent"></div>
+      </div>
+    </div>
+
+    <!-- AI MEMO DRAFTING -->
+    <div id="view-memo" style="display:none;">
+      <div class="page-header">
+        <div class="page-header-left"><h1>AI Memo Drafting</h1><p>Generate professional client communications and audit documents</p></div>
+      </div>
+      <div class="content">
+        <div class="panel in" style="padding:20px 24px;margin-bottom:1px;">
+          <div style="display:flex;gap:16px;align-items:flex-end;flex-wrap:wrap;">
+            <div>
+              <label style="font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);display:block;margin-bottom:6px;">Memo Type</label>
+              <select id="memoType" style="font-family:'IBM Plex Mono',monospace;font-size:12px;padding:8px 12px;border:1px solid var(--rule);background:var(--paper);min-width:240px;">
+                <option value="month-end">Month-End Client Summary</option>
+                <option value="cfo">CFO / Controller Variance Memo</option>
+                <option value="mgmt-letter">Management Letter Recommendations</option>
+                <option value="audit-plan">Audit Planning Note</option>
+              </select>
+            </div>
+            <button class="btn btn-solid" onclick="renderAIMemo()">✍️ Draft Memo</button>
+          </div>
+          <p style="font-size:11.5px;color:var(--muted);margin-top:14px;line-height:1.65;">Claude AI reads your loaded financial data and drafts a professional memo. Review carefully before sending — AI output requires human judgment. <strong>API key required</strong> (add in Settings).</p>
+        </div>
+        <div id="memoOutput"><div class="empty"><div class="empty-icon">✍️</div><p>Select a memo type and click Draft Memo</p></div></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+<div class="toast" id="toast"></div>
+<script src="app.js"></script>
+<script>
+  const mainDrop = document.getElementById('mainDrop');
+  mainDrop.addEventListener('dragover',e=>{e.preventDefault();mainDrop.classList.add('drag-over');});
+  mainDrop.addEventListener('dragleave',()=>mainDrop.classList.remove('drag-over'));
+  mainDrop.addEventListener('drop',e=>{e.preventDefault();mainDrop.classList.remove('drag-over');const f=e.dataTransfer.files[0];if(f)handleFile(f);});
+  document.getElementById('fileInputMain').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
+  document.getElementById('fileInputTopbar').addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0]);});
+</script>
+</body>
+</html>
