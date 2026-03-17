@@ -5,41 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>LedgerAI — Sign In</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    :root {
-      --ink:#0f0e0b; --paper:#f5f0e6; --cream:#ede7d5;
-      --rule:#c8bfa8; --muted:#7a7060; --red:#c0321a;
-      --gold:#a87418; --green:#1a5c34; --green-l:#dff2e9;
-      --red-l:#fcecea;
-    }
+    :root{--ink:#0f0e0b;--paper:#f5f0e6;--cream:#ede7d5;--rule:#c8bfa8;--muted:#7a7060;--red:#c0321a;--gold:#a87418;--green:#1a5c34;--green-l:#dff2e9;--red-l:#fcecea;}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
     html{font-size:14px;}
     body{background:var(--paper);color:var(--ink);font-family:'IBM Plex Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column;}
-
-    /* NAV */
-    nav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--ink);border-bottom:2px solid rgba(255,255,255,.06);}
+    nav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;background:var(--ink);}
     .nav-logo{font-family:'Playfair Display',serif;font-size:18px;font-weight:900;color:white;text-decoration:none;display:flex;align-items:center;gap:7px;}
     .nav-dot{width:7px;height:7px;background:var(--red);border-radius:50%;}
     .nav-logo em{font-style:italic;color:#c8a050;}
-    .nav-back{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);text-decoration:none;transition:color .14s;}
+    .nav-back{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.4);text-decoration:none;}
     .nav-back:hover{color:white;}
-
-    /* LAYOUT */
     .page{flex:1;display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 52px);}
-
-    /* LEFT — branding panel */
-    .brand-panel{background:var(--ink);padding:60px 52px;display:flex;flex-direction:column;justify-content:center;border-right:1px solid rgba(255,255,255,.06);}
+    .brand-panel{background:var(--ink);padding:60px 52px;display:flex;flex-direction:column;justify-content:center;}
     .bp-eyebrow{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.2em;color:rgba(255,255,255,.3);margin-bottom:20px;}
     .bp-title{font-family:'Playfair Display',serif;font-size:clamp(32px,4vw,52px);font-weight:900;letter-spacing:-1.5px;line-height:1.06;color:white;margin-bottom:16px;}
     .bp-title em{font-style:italic;color:#c8a050;}
     .bp-sub{font-size:13px;color:rgba(255,255,255,.45);line-height:1.85;max-width:380px;margin-bottom:40px;}
     .bp-features{display:flex;flex-direction:column;gap:12px;}
     .bp-feat{display:flex;align-items:flex-start;gap:10px;font-size:12.5px;color:rgba(255,255,255,.55);}
-    .bp-feat-icon{color:var(--gold);flex-shrink:0;margin-top:1px;}
+    .bp-feat-icon{color:var(--gold);flex-shrink:0;}
     .bp-divider{height:1px;background:rgba(255,255,255,.06);margin:32px 0;}
     .bp-note{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:rgba(255,255,255,.2);}
-
-    /* RIGHT — auth form */
     .auth-panel{background:var(--paper);padding:60px 52px;display:flex;flex-direction:column;justify-content:center;}
     .auth-tabs{display:flex;gap:0;margin-bottom:32px;border-bottom:2px solid var(--rule);}
     .auth-tab{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;padding:10px 20px;cursor:pointer;border:none;background:none;color:var(--muted);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .14s;}
@@ -47,38 +35,33 @@
     .auth-form{display:flex;flex-direction:column;gap:16px;max-width:380px;}
     .field{display:flex;flex-direction:column;gap:6px;}
     .field label{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);}
-    .field input{font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:12px 14px;border:1.5px solid var(--rule);background:white;color:var(--ink);outline:none;transition:border .14s;border-radius:2px;}
+    .field input{font-family:'IBM Plex Sans',sans-serif;font-size:14px;padding:12px 14px;border:1.5px solid var(--rule);background:white;color:var(--ink);outline:none;transition:border .14s;border-radius:2px;width:100%;}
     .field input:focus{border-color:var(--ink);}
-    .field input::placeholder{color:var(--rule);}
-    .btn-submit{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;background:var(--ink);color:var(--paper);border:none;padding:14px;cursor:pointer;transition:background .14s,transform .12s;margin-top:4px;border-radius:2px;}
-    .btn-submit:hover{background:#1c1b16;transform:translateY(-1px);}
-    .btn-submit:disabled{opacity:.5;cursor:not-allowed;transform:none;}
-    .auth-divider{display:flex;align-items:center;gap:12px;color:var(--muted);font-size:11px;}
-    .auth-divider::before,.auth-divider::after{content:'';flex:1;height:1px;background:var(--rule);}
-    .btn-google{font-family:'IBM Plex Sans',sans-serif;font-size:13px;background:white;color:var(--ink);border:1.5px solid var(--rule);padding:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:border .14s,background .14s;border-radius:2px;}
-    .btn-google:hover{border-color:var(--ink);background:var(--cream);}
-    .google-icon{width:18px;height:18px;}
-    .auth-msg{font-size:12px;padding:10px 14px;border-radius:2px;display:none;}
+    .btn-submit{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;background:var(--ink);color:var(--paper);border:none;padding:14px;cursor:pointer;transition:background .14s;border-radius:2px;width:100%;margin-top:4px;}
+    .btn-submit:hover{background:#1c1b16;}
+    .btn-submit:disabled{opacity:.5;cursor:not-allowed;}
+    .auth-msg{font-size:12.5px;padding:11px 14px;border-radius:2px;margin-bottom:4px;display:none;line-height:1.6;}
     .auth-msg.error{background:var(--red-l);color:var(--red);border:1px solid rgba(192,50,26,.2);display:block;}
     .auth-msg.success{background:var(--green-l);color:var(--green);border:1px solid rgba(26,92,52,.2);display:block;}
-    .auth-footer{margin-top:24px;font-size:12px;color:var(--muted);max-width:380px;line-height:1.7;}
-    .auth-footer a{color:var(--ink);text-decoration:underline;}
-
-    /* Loading spinner */
-    .spinner{display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
+    .auth-msg.info{background:#e8eef8;color:#1c3d7a;border:1px solid rgba(28,61,122,.2);display:block;}
+    .auth-footer{margin-top:20px;font-size:11.5px;color:var(--muted);max-width:380px;line-height:1.7;}
+    .auth-footer a{color:var(--ink);}
+    .spinner{display:inline-block;width:12px;height:12px;border:2px solid rgba(255,255,255,.3);border-top-color:white;border-radius:50%;animation:spin .7s linear infinite;vertical-align:middle;margin-right:6px;}
     @keyframes spin{to{transform:rotate(360deg)}}
-
-    /* Mobile */
+    /* Loading overlay */
+    .loading-overlay{position:fixed;inset:0;background:rgba(245,240,230,.9);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:12px;}
+    .loading-overlay.hidden{display:none;}
+    .loading-spinner{width:32px;height:32px;border:3px solid var(--rule);border-top-color:var(--ink);border-radius:50%;animation:spin .7s linear infinite;}
+    .loading-text{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);}
     @media(max-width:768px){
       nav{padding:0 18px;}
       .page{grid-template-columns:1fr;}
       .brand-panel{display:none;}
-      .auth-panel{padding:40px 24px;justify-content:flex-start;padding-top:48px;}
-      .auth-form{max-width:100%;}
-      .auth-footer{max-width:100%;}
-      .mobile-logo{display:block !important;}
+      .auth-panel{padding:40px 24px;}
+      .auth-form,.auth-footer{max-width:100%;}
+      .mobile-logo{display:block !important;text-align:center;margin-bottom:28px;}
     }
-    .mobile-logo{display:none;text-align:center;margin-bottom:32px;}
+    .mobile-logo{display:none;}
     .mobile-logo-text{font-family:'Playfair Display',serif;font-size:28px;font-weight:900;color:var(--ink);}
     .mobile-logo-text em{font-style:italic;color:var(--gold);}
     .mobile-logo-sub{font-family:'IBM Plex Mono',monospace;font-size:9px;text-transform:uppercase;letter-spacing:.15em;color:var(--muted);margin-top:6px;}
@@ -86,18 +69,22 @@
 </head>
 <body>
 
+<!-- Loading overlay shown while Supabase initializes -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">Connecting…</div>
+</div>
+
 <nav>
   <a href="index.html" class="nav-logo"><span class="nav-dot"></span>Ledger<em>AI</em></a>
   <a href="index.html" class="nav-back">← Back to home</a>
 </nav>
 
 <div class="page">
-
-  <!-- LEFT: Branding -->
   <div class="brand-panel">
     <div class="bp-eyebrow">Welcome to LedgerAI</div>
     <h1 class="bp-title">Your finances.<br><em>Finally clear.</em></h1>
-    <p class="bp-sub">Connect your bank or upload a file. LedgerAI categorizes everything, generates GAAP reports, and keeps your books audit-ready — automatically.</p>
+    <p class="bp-sub">Connect your bank or upload any file. LedgerAI categorizes everything, generates GAAP reports, and keeps your books audit-ready — automatically.</p>
     <div class="bp-features">
       <div class="bp-feat"><span class="bp-feat-icon">✓</span>Works for students, freelancers, and businesses</div>
       <div class="bp-feat"><span class="bp-feat-icon">✓</span>Connect any bank — RBC, TD, Chase, 12,000+ supported</div>
@@ -109,10 +96,7 @@
     <div class="bp-note">Free to start · No credit card required</div>
   </div>
 
-  <!-- RIGHT: Auth form -->
   <div class="auth-panel">
-
-    <!-- Mobile only logo -->
     <div class="mobile-logo">
       <div class="mobile-logo-text">Ledger<em>AI</em></div>
       <div class="mobile-logo-sub">AI-Powered Bookkeeping</div>
@@ -125,7 +109,7 @@
 
     <div id="msgBox" class="auth-msg"></div>
 
-    <!-- SIGN IN FORM -->
+    <!-- SIGN IN -->
     <form class="auth-form" id="signinForm" onsubmit="handleSignin(event)">
       <div class="field">
         <label>Email</label>
@@ -136,18 +120,13 @@
         <input type="password" id="signinPassword" placeholder="••••••••" required autocomplete="current-password"/>
       </div>
       <button type="submit" class="btn-submit" id="signinBtn">Sign In →</button>
-      <div class="auth-divider">or</div>
-      <button type="button" class="btn-google" onclick="handleGoogle()">
-        <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Continue with Google
-      </button>
     </form>
 
-    <!-- SIGN UP FORM -->
+    <!-- SIGN UP -->
     <form class="auth-form" id="signupForm" style="display:none;" onsubmit="handleSignup(event)">
       <div class="field">
         <label>Full Name</label>
-        <input type="text" id="signupName" placeholder="Zohaib Ghani" required autocomplete="name"/>
+        <input type="text" id="signupName" placeholder="Your name" required autocomplete="name"/>
       </div>
       <div class="field">
         <label>Email</label>
@@ -158,50 +137,52 @@
         <input type="password" id="signupPassword" placeholder="At least 6 characters" required minlength="6" autocomplete="new-password"/>
       </div>
       <button type="submit" class="btn-submit" id="signupBtn">Create Free Account →</button>
-      <div class="auth-divider">or</div>
-      <button type="button" class="btn-google" onclick="handleGoogle()">
-        <svg class="google-icon" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
-        Continue with Google
-      </button>
     </form>
 
     <p class="auth-footer">
-      By creating an account you agree to our <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a>. Your financial data is encrypted and never shared.
+      By signing up you agree to our Terms of Service. Your financial data is encrypted and never shared with third parties.
     </p>
   </div>
 </div>
 
 <script>
-  // Supabase client — keys injected at runtime via meta tags set by server
-  // For now load from window config set by Vercel edge
-  const SUPABASE_URL  = window.__ENV__?.SUPABASE_URL  || '';
-  const SUPABASE_ANON = window.__ENV__?.SUPABASE_ANON || '';
+  let supabase = null;
 
-  // Load Supabase SDK
-  const script = document.createElement('script');
-  script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
-  script.onload = initSupabase;
-  document.head.appendChild(script);
-
-  let supabase;
-
-  async function initSupabase() {
-    // Get keys from our secure endpoint
+  // Initialize immediately on page load
+  async function init() {
     try {
       const res  = await fetch('/api/config');
       const conf = await res.json();
+
+      if (!conf.supabaseUrl || !conf.supabaseAnon) {
+        showMsg('Configuration error — please try refreshing the page.', 'error');
+        hideOverlay();
+        return;
+      }
+
       supabase = window.supabase.createClient(conf.supabaseUrl, conf.supabaseAnon);
+
       // Check if already logged in
       const { data: { session } } = await supabase.auth.getSession();
-      if (session) window.location.href = 'app.html';
+      if (session) {
+        window.location.href = 'app.html';
+        return;
+      }
+
+      hideOverlay();
     } catch(e) {
-      showMsg('Could not connect to server. Please refresh.', 'error');
+      showMsg('Could not connect — please refresh the page. Error: ' + e.message, 'error');
+      hideOverlay();
     }
   }
 
+  function hideOverlay() {
+    document.getElementById('loadingOverlay').classList.add('hidden');
+  }
+
   function switchTab(tab) {
-    document.getElementById('signinForm').style.display  = tab === 'signin'  ? 'flex' : 'none';
-    document.getElementById('signupForm').style.display  = tab === 'signup'  ? 'flex' : 'none';
+    document.getElementById('signinForm').style.display  = tab === 'signin' ? 'flex' : 'none';
+    document.getElementById('signupForm').style.display  = tab === 'signup' ? 'flex' : 'none';
     document.getElementById('tabSignin').classList.toggle('active', tab === 'signin');
     document.getElementById('tabSignup').classList.toggle('active', tab === 'signup');
     clearMsg();
@@ -209,50 +190,50 @@
 
   async function handleSignin(e) {
     e.preventDefault();
-    if (!supabase) return;
+    if (!supabase) { showMsg('Still connecting — please wait a moment and try again.', 'error'); return; }
     const btn   = document.getElementById('signinBtn');
     const email = document.getElementById('signinEmail').value.trim();
     const pass  = document.getElementById('signinPassword').value;
-    setLoading(btn, true);
+    setLoading(btn, true, 'Signing in…');
     clearMsg();
-    const { error } = await supabase.auth.signInWithPassword({ email, password: pass });
-    if (error) { showMsg(error.message, 'error'); setLoading(btn, false); return; }
-    showMsg('Signing in…', 'success');
-    setTimeout(() => window.location.href = 'app.html', 800);
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password: pass });
+      if (error) throw error;
+      showMsg('✓ Signed in — loading your app…', 'success');
+      setTimeout(() => window.location.href = 'app.html', 800);
+    } catch(e) {
+      showMsg(friendlyError(e.message), 'error');
+      setLoading(btn, false, 'Sign In →');
+    }
   }
 
   async function handleSignup(e) {
     e.preventDefault();
-    if (!supabase) return;
+    if (!supabase) { showMsg('Still connecting — please wait a moment and try again.', 'error'); return; }
     const btn   = document.getElementById('signupBtn');
     const name  = document.getElementById('signupName').value.trim();
     const email = document.getElementById('signupEmail').value.trim();
     const pass  = document.getElementById('signupPassword').value;
-    setLoading(btn, true);
+    setLoading(btn, true, 'Creating account…');
     clearMsg();
-    const { error } = await supabase.auth.signUp({
-      email, password: pass,
-      options: { data: { full_name: name } }
-    });
-    if (error) { showMsg(error.message, 'error'); setLoading(btn, false); return; }
-    showMsg('Account created! Taking you to the app…', 'success');
-    setTimeout(() => window.location.href = 'app.html', 1000);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password: pass,
+        options: { data: { full_name: name } }
+      });
+      if (error) throw error;
+      showMsg('✓ Account created — taking you to the app…', 'success');
+      setTimeout(() => window.location.href = 'app.html', 1000);
+    } catch(e) {
+      showMsg(friendlyError(e.message), 'error');
+      setLoading(btn, false, 'Create Free Account →');
+    }
   }
 
-  async function handleGoogle() {
-    if (!supabase) return;
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + '/app.html' }
-    });
-    if (error) showMsg(error.message, 'error');
-  }
-
-  function setLoading(btn, loading) {
+  function setLoading(btn, loading, text) {
     btn.disabled = loading;
-    btn.innerHTML = loading
-      ? '<span class="spinner"></span>Please wait…'
-      : btn.id === 'signinBtn' ? 'Sign In →' : 'Create Free Account →';
+    btn.innerHTML = loading ? '<span class="spinner"></span>' + text : text;
   }
 
   function showMsg(msg, type) {
@@ -266,6 +247,17 @@
     el.className = 'auth-msg';
     el.textContent = '';
   }
+
+  function friendlyError(msg) {
+    if (msg.includes('Invalid login')) return 'Incorrect email or password. Please try again.';
+    if (msg.includes('already registered')) return 'An account with this email already exists. Try signing in instead.';
+    if (msg.includes('Password should')) return 'Password must be at least 6 characters.';
+    if (msg.includes('valid email')) return 'Please enter a valid email address.';
+    return msg;
+  }
+
+  // Start init right away
+  init();
 </script>
 </body>
 </html>
