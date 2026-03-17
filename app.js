@@ -2432,3 +2432,37 @@ function loadPlaidSandboxTransactions(metadata) {
   auditEntry('load', `Plaid: ${transactions.length} transactions loaded`, institutionName, '', periodKey);
   showView('dashboard');
 }
+
+
+// ============================================================
+// MOBILE SIDEBAR
+// ============================================================
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebarOverlay');
+  const isOpen  = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  overlay.classList.toggle('show', !isOpen);
+}
+
+function initMobile() {
+  const toggle = document.getElementById('menuToggle');
+  if (!toggle) return;
+  const mq = window.matchMedia('(max-width: 900px)');
+  const update = () => toggle.style.display = mq.matches ? 'flex' : 'none';
+  mq.addEventListener('change', update);
+  update();
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (window.innerWidth <= 900) {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('sidebarOverlay').classList.remove('show');
+      }
+    });
+  });
+}
+
+// Init
+renderCOA();
+initMobile();
+auditEntry('system', 'LedgerAI session started', 'v5.0 — ' + new Date().toLocaleDateString());

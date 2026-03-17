@@ -13,6 +13,7 @@
 <body>
 <div class="topbar">
   <div class="topbar-left">
+    <button class="menu-toggle" id="menuToggle" style="display:none;" onclick="toggleSidebar()">☰</button>
     <div class="logo"><span class="logo-dot"></span>Ledger<em>AI</em></div>
     <div class="topbar-company" id="topbarCompany">No company loaded</div>
   </div>
@@ -24,6 +25,7 @@
     <button class="topbar-btn topbar-btn-ghost" onclick="showView('settings')">⚙ Settings</button>
   </div>
 </div>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 <div class="app-body">
   <aside class="sidebar" id="sidebar">
     <div class="sidebar-section">
