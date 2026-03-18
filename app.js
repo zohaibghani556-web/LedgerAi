@@ -686,19 +686,34 @@ const VIEWS = [
 ];
 
 function renderView(name) {
-  const noDataViews = ['settings','coa','onboard','student-dashboard','fl-dashboard','goals','subscriptions'];
+  const noDataViews = ['settings','coa','onboard','student-dashboard','fl-dashboard','goals','subscriptions','invoices','contractors','forecast'];
   if (!activeTransactions.length && !noDataViews.includes(name)) return;
   const map = {
-    dashboard: renderDashboard, transactions: renderTransactions,
-    trialbalance: renderTrialBalance, coa: renderCOA, flags: renderFlags,
-    settings: loadSettingsForm, pl: renderPL, cashflow: renderCashFlow,
-    budget: renderBudgetVsActual, reconcile: renderReconcileSetup,
-    duplicates: runDuplicateDetection, audit: renderAuditTrail,
-    workingpapers: renderWorkingPapers,
-    'student-dashboard': renderStudentDashboard, spending: renderSpending,
-    subscriptions: renderSubscriptions, goals: renderGoals,
-    'fl-dashboard': renderFreelancerDashboard, income: renderIncome,
-    clients: renderClients, taxes: renderTaxes,
+    dashboard:        renderDashboard,
+    transactions:     renderTransactions,
+    trialbalance:     renderTrialBalance,
+    coa:              renderCOA,
+    flags:            renderFlags,
+    settings:         loadSettingsForm,
+    pl:               renderPL,
+    cashflow:         renderCashFlow,
+    budget:           renderBudgetVsActual,
+    reconcile:        renderReconcileSetup,
+    duplicates:       runDuplicateDetection,
+    audit:            renderAuditTrail,
+    workingpapers:    renderWorkingPapers,
+    'student-dashboard': renderStudentDashboard,
+    spending:         renderSpending,
+    subscriptions:    renderSubscriptions,
+    goals:            renderGoals,
+    'fl-dashboard':   renderFreelancerDashboard,
+    income:           renderIncome,
+    clients:          renderClients,
+    taxes:            renderTaxes,
+    contractors:      renderContractors,
+    forecast:         renderForecast,
+    invoices:         renderInvoices,
+    memo:             () => {},
   };
   if (map[name]) map[name]();
 }
@@ -2958,54 +2973,43 @@ function renderSpending() {
 }
 
 // ============================================================
-// SECTION 52: UPDATE renderView TO INCLUDE NEW VIEWS
+// SECTION 52: showView — unified router for all views
 // ============================================================
-const _origRenderView = renderView;
-function renderView(name) {
-  // Extended view map for new sections
-  const extended = {
-    contractors: renderContractors,
-    forecast:    renderForecast,
-    invoices:    renderInvoices,
-    taxes:       renderTaxCalculator,
-  };
-  if (extended[name]) { extended[name](); return; }
-  _origRenderView(name);
-}
-
-// Override showView to also handle new views
-const _origShowView = showView;
 function showView(name) {
-  const newViews = ['contractors','forecast','invoices'];
-  if (newViews.includes(name)) {
-    // Route to closest existing container or working papers
-    document.querySelectorAll('.view-section').forEach(el => el.style.display='none');
-    document.querySelectorAll('.nav-item').forEach(b=>b.classList.remove('active'));
-    // Try to find the container
-    let container = document.getElementById('view-'+name);
-    if (!container) {
-      // Fall back to working papers view and inject content
-      container = document.getElementById('view-workingpapers');
-      const navBtn = document.getElementById('nav-workingpapers');
-      if (navBtn) navBtn.classList.add('active');
-      if (container) {
-        container.style.display='block';
-        const wpContent = document.getElementById('wpContent');
-        if (wpContent) {
-          wpContent.innerHTML = '<div id="'+name+'Content"></div>';
-        }
-        renderView(name);
-      }
-      return;
-    }
-    container.style.display='block';
-    const navBtn = document.getElementById('nav-'+name);
+  // Hide all views
+  document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+  document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
+
+  // New views (contractors/forecast/invoices) don't have dedicated HTML containers yet
+  // Route them to the working papers container and inject content there
+  const injectedViews = ['contractors', 'forecast', 'invoices'];
+  let targetId = 'view-' + name;
+
+  if (injectedViews.includes(name)) {
+    const navBtn = document.getElementById('nav-workingpapers');
     if (navBtn) navBtn.classList.add('active');
-    renderView(name);
+    const container = document.getElementById('view-workingpapers');
+    if (container) {
+      container.style.display = 'block';
+      const wpContent = document.getElementById('wpContent');
+      if (wpContent) wpContent.innerHTML = '<div id="' + name + 'Content" style="padding:0"></div>';
+      renderView(name);
+    }
+    setTimeout(renderSmartAlerts, 100);
     return;
   }
-  _origShowView(name);
-  // After any view change, run smart alerts
+
+  // Standard views
+  const navBtn = document.getElementById('nav-' + name);
+  if (navBtn) navBtn.classList.add('active');
+  const view = document.getElementById(targetId);
+  if (view) {
+    view.style.display = 'block';
+    view.classList.remove('view-enter');
+    void view.offsetWidth;
+    view.classList.add('view-enter');
+  }
+  renderView(name);
   setTimeout(renderSmartAlerts, 100);
 }
 
