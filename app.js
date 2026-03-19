@@ -731,10 +731,10 @@ function auditEntry(type, action, detail, before, after) {
 }
 
 function renderAuditTrail() {
-  const body=document.getElementById('auditLogBody');
-  const count=document.getElementById('auditEntryCount');
+  const body=document.getElementById('auditBody');
+  const count=document.getElementById('auditBadge');
   if(!body) return;
-  if(count) count.textContent=auditLog.length+' entries';
+  if(count) count.textContent=auditLog.length;
   if(!auditLog.length){body.innerHTML='<div class="empty"><div class="empty-icon">📋</div><p>No activity yet</p></div>';return;}
   const META={load:{tag:'at-load',dot:'#2a4a9a'},edit:{tag:'at-edit',dot:'#3a6adf'},ai:{tag:'at-ai',dot:'#a87c1a'},delete:{tag:'at-delete',dot:'#b83a20'},export:{tag:'at-export',dot:'#1e6640'},revert:{tag:'at-revert',dot:'#8c8478'},system:{tag:'at-load',dot:'#444'},flag:{tag:'at-flag',dot:'#c0321a'}};
   body.innerHTML=auditLog.map(e=>{
@@ -1080,10 +1080,10 @@ function renderTrialBalance(){
     tr.innerHTML=`<td><div class="tb-acct">${acct.name}</div></td><td><span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--blue);font-weight:600">${code}</span></td><td><span class="coa-type">${acct.type}</span></td><td class="tb-dr">${vals.debit>0?sym+fmtAmt(vals.debit):'—'}</td><td class="tb-cr">${vals.credit>0?sym+fmtAmt(vals.credit):'—'}</td>`;
     tbody.appendChild(tr);
   });
-  const tdr=document.getElementById('tbTotalDr'); if(tdr) tdr.textContent=sym+fmtAmt(totDr);
-  const tcr=document.getElementById('tbTotalCr'); if(tcr) tcr.textContent=sym+fmtAmt(totCr);
+  const tdr=document.getElementById('tbTotDr'); if(tdr) tdr.textContent=sym+fmtAmt(totDr);
+  const tcr=document.getElementById('tbTotCr'); if(tcr) tcr.textContent=sym+fmtAmt(totCr);
   const uncatCount=activeTransactions.filter(r=>!r.category||r.category===''||r.category==='Uncategorized').length;
-  const notice=document.getElementById('tbNotice');
+  const notice=document.getElementById('tbBalanceStatus');
   if(notice){
     notice.style.display='flex'; notice.className='tb-notice '+(balanced?'ok':'err');
     let text=balanced?`✓ Trial balance is balanced — total debits equal total credits (${sym}${fmt(totDr)})`:`⚠ Out of balance — difference of ${sym}${fmt(Math.abs(totDr-totCr))}. Review uncategorized or flagged transactions.`;
@@ -1409,7 +1409,7 @@ function exportProfessionalExcel(){
 // SECTION 19: CHART OF ACCOUNTS
 // ============================================================
 function renderCOA(){
-  const tbl=document.getElementById('coaTable'); if(!tbl) return;
+  const tbl=document.getElementById('coaBody'); if(!tbl) return;
   tbl.innerHTML='<tr><th>Code</th><th>Account Name</th><th>Type</th><th>Normal Balance</th><th>Group</th></tr>';
   let lastGroup='';
   Object.entries(COA).sort((a,b)=>a[0].localeCompare(b[0])).forEach(([code,acct])=>{
@@ -1559,7 +1559,7 @@ function handleBankFile(event){
   else{const reader=new FileReader();reader.onload=e=>{const wb=XLSX.read(new Uint8Array(e.target.result),{type:'array'});bankStatementRows=normalizeColumns(XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}));updateReconCounts();showToast(`Bank file loaded: ${bankStatementRows.length} rows`);};reader.readAsArrayBuffer(file);}
 }
 function renderReconcileSetup(){if(!activeTransactions.length) return;const period=activePeriod==='__ytd__'?'Year-to-Date':(activePeriod||'—');const lbl=document.getElementById('reconPeriodLabel');if(lbl)lbl.textContent=period;updateReconCounts();}
-function updateReconCounts(){const lc=document.getElementById('reconLedgerCount'),bc=document.getElementById('reconBankCount');if(lc)lc.textContent=activeTransactions.length+' ledger transactions loaded';if(bc)bc.textContent=bankStatementRows.length>0?bankStatementRows.length+' bank rows loaded':'No bank file loaded yet';}
+function updateReconCounts(){const bc=document.getElementById('reconBankCount');if(bc)bc.textContent=bankStatementRows.length>0?bankStatementRows.length+' bank rows loaded':'No bank file loaded yet';}
 
 function runReconciliation(){
   const ledger=activeTransactions.filter(r=>parseFloat(r.amount||0)>0),bank=bankStatementRows,sym=currencySymbol();
@@ -1626,7 +1626,7 @@ function runDuplicateDetection(){
   });
   const badge=document.getElementById('dupBadge');
   if(badge){badge.textContent=groups.length;badge.style.display=groups.length?'inline-flex':'none';}
-  const container=document.getElementById('dupContent'); if(!container) return;
+  const container=document.getElementById('dupResults'); if(!container) return;
   if(!groups.length){container.innerHTML=`<div class="empty" style="background:var(--green-l);border:1px solid rgba(30,102,64,0.15);border-radius:2px;padding:40px"><div class="empty-icon">✅</div><p style="color:var(--green)">No duplicate transactions detected</p><p style="font-size:12px;color:var(--muted);margin-top:8px">Scanned ${txns.length} transactions for matching amounts, descriptions, and dates within 7 days.</p></div>`;return;}
   const totalDupAmt=groups.reduce((s,g)=>s+g.slice(1).reduce((ss,r)=>ss+parseFloat(r.amount||0),0),0);
   let html=`<div class="dup-summary-bar"><div class="dup-summary-stat"><label>Duplicate Groups</label><value style="color:var(--accent)">${groups.length}</value></div><div class="dup-summary-stat"><label>Potential Duplicate Rows</label><value>${groups.reduce((s,g)=>s+g.length,0)}</value></div><div class="dup-summary-stat"><label>Potential Overcharge</label><value style="color:var(--accent);font-size:18px;margin-top:4px">${sym}${fmt(totalDupAmt)}</value></div></div>`;
@@ -1941,7 +1941,7 @@ function initPlaid(){
   if(!settings.plaidLinkToken){showToast('Loading demo bank data — add Plaid Link Token in Settings to connect a real bank.');loadPlaidSandboxTransactions({});return;}
   if(!window.Plaid){const script=document.createElement('script');script.src='https://cdn.plaid.com/link/v2/stable/link-initialize.js';script.onload=()=>openPlaidLink();document.head.appendChild(script);}else openPlaidLink();
 }
-function openPlaidLink(){if(!window.Plaid){showToast('Plaid script failed to load.');return;}plaidHandler=window.Plaid.create({token:settings.plaidLinkToken,onSuccess:(publicToken,metadata)=>{showToast(`Bank connected: ${metadata.institution?.name||'Account'} — loading transactions…`);auditEntry('system','Bank connected via Plaid',metadata.institution?.name||'Unknown bank');loadPlaidSandboxTransactions(metadata);},onExit:err=>{if(err)showToast('Bank connection cancelled.');},onEvent:e=>console.log('Plaid:',e)});plaidHandler.open();}
+function openPlaidLink(){if(!window.Plaid){showToast('Plaid script failed to load.');return;}plaidHandler=window.Plaid.create({token:settings.plaidLinkToken,onSuccess:(publicToken,metadata)=>{showToast(`Bank connected: ${metadata.institution?.name||'Account'} — loading transactions…`);auditEntry('system','Bank connected via Plaid',metadata.institution?.name||'Unknown bank');loadPlaidSandboxTransactions(metadata);},onExit:err=>{if(err)showToast('Bank connection cancelled.');},onEvent:()=>{}});plaidHandler.open();}
 function loadPlaidSandboxTransactions(metadata){
   const institutionName=metadata?.institution?.name||'Connected Bank';
   const now=new Date();
@@ -2128,7 +2128,7 @@ document.addEventListener('keydown', e => {
   if (mod && e.key === 'k') { e.preventDefault(); openCommandPalette(); return; }
   if (mod && e.key === 'd') { e.preventDefault(); toggleDarkMode(); return; }
   if (mod && e.key === 'e') { e.preventDefault(); exportProfessionalExcel(); return; }
-  if (mod && e.key === 'u') { e.preventDefault(); document.getElementById('fileInput')?.click(); return; }
+  if (mod && e.key === 'u') { e.preventDefault(); document.getElementById('fileInputTopbar')?.click(); return; }
   if (mod && e.key === '/') { e.preventDefault(); document.getElementById('searchInput')?.focus(); return; }
   if (e.key === 'Escape') { closeCommandPalette(); closeBulkCategorize(); }
 });
@@ -2976,8 +2976,17 @@ function renderSpending() {
 // SECTION 52: showView — unified router for all views
 // ============================================================
 function showView(name) {
-  // Hide all views
-  document.querySelectorAll('.view-section').forEach(el => el.style.display = 'none');
+  // Hide all views by ID (views use id="view-*", not a class)
+  const VIEWS = [
+    'onboard','dashboard','transactions','trialbalance','coa','flags','settings',
+    'pl','cashflow','budget','reconcile','duplicates','audit','workingpapers','memo',
+    'student-dashboard','spending','subscriptions','goals',
+    'fl-dashboard','income','clients','taxes'
+  ];
+  VIEWS.forEach(v => {
+    const el = document.getElementById('view-' + v);
+    if (el) el.style.display = 'none';
+  });
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
   // New views (contractors/forecast/invoices) don't have dedicated HTML containers yet
@@ -2995,6 +3004,9 @@ function showView(name) {
       if (wpContent) wpContent.innerHTML = '<div id="' + name + 'Content" style="padding:0"></div>';
       renderView(name);
     }
+    const main = document.getElementById('mainContent') || document.querySelector('.main');
+    if (main) main.scrollTop = 0;
+    window.scrollTo(0, 0);
     setTimeout(renderSmartAlerts, 100);
     return;
   }
@@ -3009,6 +3021,10 @@ function showView(name) {
     void view.offsetWidth;
     view.classList.add('view-enter');
   }
+  // Always scroll to top of main content when switching views
+  const main = document.getElementById('mainContent') || document.querySelector('.main');
+  if (main) main.scrollTop = 0;
+  window.scrollTo(0, 0);
   renderView(name);
   setTimeout(renderSmartAlerts, 100);
 }
@@ -3110,6 +3126,62 @@ function injectDynamicStyles() {
     }
   `;
   document.head.appendChild(style);
+}
+
+
+// ============================================================
+// SECTION 55: MISSING EXPORT FUNCTIONS
+// ============================================================
+function exportBVAPDF(){
+  if(!activeTransactions.length){showToast('Load transactions first.');return;}
+  const sym=currencySymbol();
+  const period=activePeriod==='__ytd__'?'Year-to-Date':(activePeriod||'—');
+  const catTotals={};
+  activeTransactions.filter(r=>parseFloat(r.amount||0)>0&&r.category!=='Transfer').forEach(r=>{const c=r.category||'Miscellaneous';catTotals[c]=(catTotals[c]||0)+parseFloat(r.amount||0);});
+  const rows=Object.entries(catTotals).sort((a,b)=>b[1]-a[1]).map(([cat,actual])=>{
+    const budget=budgets[cat]||0;const variance=budget-actual;const isOver=budget>0&&actual>budget;
+    return`<tr style="border-bottom:1px solid #eee"><td style="padding:8px 12px;font-size:12px">${cat}</td><td style="padding:8px 12px;font-family:monospace;font-size:11px;text-align:right">${sym}${fmt(budget||0)}</td><td style="padding:8px 12px;font-family:monospace;font-size:11px;text-align:right;color:#b83a20">${sym}${fmt(actual)}</td><td style="padding:8px 12px;font-family:monospace;font-size:11px;text-align:right;color:${isOver?'#b83a20':'#1e6640'}">${isOver?'▲':'▼'} ${sym}${fmt(Math.abs(variance))}</td></tr>`;
+  }).join('');
+  const html=`<!DOCTYPE html><html><head><title>Budget vs Actual — ${settings.company}</title><style>body{font-family:Georgia,serif;color:#111;padding:44px}h1{font-size:22px;margin-bottom:4px}p{color:#666;font-size:13px;margin-bottom:24px}table{width:100%;border-collapse:collapse}thead th{background:#111;color:white;font-family:monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;padding:10px 12px;text-align:right}thead th:first-child{text-align:left}@media print{body{padding:20px}}</style></head><body><h1>${settings.company} — Budget vs Actual</h1><p>${period} · Generated ${new Date().toLocaleDateString()}</p><table><thead><tr><th>Category</th><th>Budget</th><th>Actual</th><th>Variance</th></tr></thead><tbody>${rows}</tbody></table></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+  auditEntry('export','Budget vs Actual PDF exported',period);
+}
+
+function exportCFPDF(){
+  if(!activeTransactions.length){showToast('Load transactions first.');return;}
+  const sym=currencySymbol();
+  const period=activePeriod==='__ytd__'?'Year-to-Date':(activePeriod||'—');
+  const sections={operating:[],investing:[],financing:[]};
+  activeTransactions.filter(r=>parseFloat(r.amount||0)>0&&r.category!=='Transfer').forEach(r=>{
+    const cls=CF_CLASSIFICATION[r.category]||'operating';sections[cls].push(r);
+  });
+  const labels={operating:'Operating Activities',investing:'Investing Activities',financing:'Financing Activities'};
+  let html='';let total=0;
+  Object.entries(sections).forEach(([key,rows])=>{
+    if(!rows.length) return;
+    const amt=rows.reduce((s,r)=>s+parseFloat(r.amount||0),0);total+=amt;
+    const bycat={};rows.forEach(r=>{const c=r.category||'Misc';bycat[c]=(bycat[c]||0)+parseFloat(r.amount||0);});
+    html+=`<div style="margin-bottom:20px"><div style="font-family:monospace;font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:#888;padding:8px 0;border-bottom:1px solid #eee;margin-bottom:8px">${labels[key]}</div>`;
+    html+=Object.entries(bycat).map(([c,v])=>`<div style="display:flex;justify-content:space-between;padding:5px 0;font-size:12px;border-bottom:1px solid #f5f2ec"><span>${c}</span><span style="font-family:monospace">(${sym}${fmt(v)})</span></div>`).join('');
+    html+=`<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;font-size:12px;border-top:1.5px solid #111;margin-top:4px"><span>Total ${labels[key]}</span><span style="font-family:monospace">(${sym}${fmt(amt)})</span></div></div>`;
+  });
+  const fullHtml=`<!DOCTYPE html><html><head><title>Cash Flow — ${settings.company}</title><style>body{font-family:Georgia,serif;color:#111;padding:44px;max-width:600px}h1{font-size:22px;margin-bottom:4px}p{color:#666;font-size:13px;margin-bottom:28px}.net{background:#111;color:white;padding:14px;display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin-top:8px}@media print{body{padding:20px}}</style></head><body><h1>${settings.company} — Cash Flow Statement</h1><p>${period} · Generated ${new Date().toLocaleDateString()}</p>${html}<div class="net"><span>Net Cash Used</span><span>(${sym}${fmt(total)})</span></div></body></html>`;
+  const w=window.open('','_blank');w.document.write(fullHtml);w.document.close();setTimeout(()=>w.print(),500);
+  auditEntry('export','Cash Flow PDF exported',period);
+}
+
+function exportReconPDF(){
+  if(!activeTransactions.length){showToast('Load transactions first.');return;}
+  const sym=currencySymbol();
+  const period=activePeriod==='__ytd__'?'Year-to-Date':(activePeriod||'—');
+  const resultsEl=document.getElementById('reconResults');
+  const html=`<!DOCTYPE html><html><head><title>Bank Reconciliation — ${settings.company}</title><style>body{font-family:Georgia,serif;color:#111;padding:44px}h1{font-size:22px;margin-bottom:4px}p{color:#666;font-size:13px;margin-bottom:24px}@media print{body{padding:20px}}</style></head><body><h1>${settings.company} — Bank Reconciliation</h1><p>${period} · Generated ${new Date().toLocaleDateString()}</p>${resultsEl?resultsEl.innerHTML:'<p>Run reconciliation first.</p>'}</body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();setTimeout(()=>w.print(),500);
+  auditEntry('export','Bank Reconciliation PDF exported',period);
+}
+
+function addClient(){
+  showToast('Add income transactions with the client name as description to track clients automatically.');
 }
 
 // ============================================================
