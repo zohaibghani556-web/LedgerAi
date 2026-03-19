@@ -1431,45 +1431,29 @@ function renderFlags(){
   if(lbl) lbl.textContent=`${label} — ${flagged.length} item${flagged.length!==1?'s':''} flagged`;
   document.querySelectorAll('[id^="sidebarFlagBadge"]').forEach(b=>b.textContent=flagged.length);
   const container=document.getElementById('flagsContainer'); if(!container) return;
-  if(!flagged.length){
-    container.innerHTML='<div class="empty" style="padding:60px 28px"><div class="empty-icon">✅</div><p>No flagged transactions — everything looks good!</p></div>';
-    return;
-  }
-  // Sort by severity: high first
-  const sorted=[...flagged].sort((a,b)=>{
-    const sev=r=>r.flag.includes('⚠')||r.flag.includes('T4A')||r.flag.includes('Large')?0:r.flag.includes('50%')?1:2;
-    return sev(a)-sev(b);
-  });
-  const high=sorted.filter(r=>r.flag.includes('⚠')||r.flag.includes('T4A')||r.flag.includes('Large'));
-  const med=sorted.filter(r=>r.flag.includes('50%'));
-  const low=sorted.filter(r=>!r.flag.includes('⚠')&&!r.flag.includes('T4A')&&!r.flag.includes('Large')&&!r.flag.includes('50%'));
-  const cardHTML=(r,sev)=>{
+  if(!flagged.length){container.innerHTML='<div class="empty" style="padding:80px 0"><div class="empty-icon">✅</div><p>No flagged transactions — all clear!</p></div>';return;}
+  const getSev=r=>r.flag.includes('T4A')||r.flag.includes('Large')||r.flag.includes('⚠')?'high':r.flag.includes('50%')||r.flag.includes('M&E')?'medium':'low';
+  const sorted=[...flagged].sort((a,b)=>{const o={high:0,medium:1,low:2};return o[getSev(a)]-o[getSev(b)];});
+  container.innerHTML=sorted.map((r,idx)=>{
     const gIdx=txns.findIndex(t=>t.date===r.date&&t.description===r.description&&t.amount===r.amount);
-    const sevClass=sev==='high'?'severity-high':sev==='medium'?'severity-medium':'severity-low';
-    const badgeClass=sev==='high'?'fsb-high':sev==='medium'?'fsb-medium':'fsb-low';
-    const badgeLabel=sev==='high'?'High':sev==='medium'?'Medium':'Low';
+    const sev=getSev(r);
     const icon=sev==='high'?'🚨':sev==='medium'?'⚠️':'ℹ️';
-    return `<div class="flag-card ${sevClass}" style="animation-delay:${gIdx*.02}s">
+    const badgeClass=sev==='high'?'fsb-high':sev==='medium'?'fsb-medium':'fsb-low';
+    const label=sev==='high'?'HIGH':sev==='medium'?'MEDIUM':'LOW';
+    return `<div class="flag-card severity-${sev}" style="animation-delay:${idx*0.03}s">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
         <div class="flag-title" style="margin-bottom:0">${icon} ${r.description}</div>
-        <span class="flag-severity-badge ${badgeClass}">${badgeLabel}</span>
+        <span class="flag-severity-badge ${badgeClass}">${label}</span>
       </div>
       <div class="flag-meta">
-        <span>${r.date}</span>
-        <span>·</span>
+        <span>${r.date}</span><span>·</span>
         <span style="font-weight:700;color:var(--ink)">${currencySymbol()}${fmtAmt(Math.abs(parseFloat(r.amount||0)))}</span>
-        <span>·</span>
-        <span>${r.category||'Uncategorized'}</span>
+        <span>·</span><span>${r.category||'Uncategorized'}</span>
       </div>
       <div class="flag-body">${r.flag}</div>
-      ${gIdx>=0?`<div style="margin-top:14px"><button class="btn btn-sm btn-green" onclick="clearFlag(${gIdx})">✓ Mark Resolved</button></div>`:''}
+      ${gIdx>=0?`<div style="margin-top:12px"><button class="btn btn-sm btn-green" onclick="clearFlag(${gIdx})">✓ Mark Resolved</button></div>`:''}
     </div>`;
-  };
-  container.innerHTML=`<div class="flags-grid">
-    ${high.map(r=>cardHTML(r,'high')).join('')}
-    ${med.map(r=>cardHTML(r,'medium')).join('')}
-    ${low.map(r=>cardHTML(r,'low')).join('')}
-  </div>`;
+  }).join('');
 }
 
 function clearFlag(index){
@@ -2809,20 +2793,19 @@ function renderSubscriptions() {
     return;
   }
 
-  grid.innerHTML = subs.map(s=>`
-      <div class="sub-card${s.personal?' sub-personal':''}">
-        <div class="sub-icon">${s.icon}</div>
-        <div class="sub-name">${s.name}</div>
-        <div class="sub-amt">${sym}${fmt(s.amount)}/mo</div>
-        <div class="sub-meta">${s.count} charge${s.count!==1?'s':''}</div>
-        <span class="sub-tag ${s.personal?'sub-tag-personal':'sub-tag-business'}">${s.personal?'Personal':'Business'}</span>
-      </div>`).join('');
-
-  if (personal.length) {
-    const warn = document.createElement('div');
-    warn.style.cssText = 'margin:0 28px 16px;padding:12px 16px;background:var(--gold-l);border-left:3px solid var(--gold);font-size:12px;color:var(--gold);border-radius:0 var(--radius-sm) var(--radius-sm) 0;';
-    warn.innerHTML = `⚠ ${sym}${fmt(perMonthly)}/mo (${sym}${fmt(perMonthly*12)}/year) in personal subscriptions — not tax deductible`;
-    grid.parentNode.insertBefore(warn, grid.nextSibling);
+  grid.innerHTML = subs.map((s,idx)=>`
+    <div class="sub-card" style="animation-delay:${idx*0.04}s">
+      <div class="sub-icon">${s.icon}</div>
+      <div class="sub-name">${s.name}</div>
+      <div class="sub-amt">${sym}${fmt(s.amount)}/mo</div>
+      <div class="sub-meta">${s.count} charge${s.count!==1?'s':''}</div>
+      <span class="sub-tag ${s.personal?'sub-tag-personal':'sub-tag-business'}">${s.personal?'Personal':'Business'}</span>
+    </div>`).join('');
+  if(personal.length){
+    const warn=document.createElement('div');
+    warn.style.cssText='margin:16px 0 0;padding:12px 16px;background:var(--gold-l);border-left:3px solid var(--gold);font-size:12px;color:var(--gold);border-radius:0 6px 6px 0;';
+    warn.innerHTML=`⚠ ${sym}${fmt(perMonthly)}/mo (${sym}${fmt(perMonthly*12)}/yr) in personal subscriptions — not tax deductible`;
+    grid.after(warn);
   }
 }
 
@@ -3010,17 +2993,8 @@ function renderSpending() {
 // SECTION 52: showView — unified router for all views
 // ============================================================
 function showView(name) {
-  // Hide all views by ID (views use id="view-*", not a class)
-  const ALL_VIEWS = [
-    'onboard','dashboard','transactions','trialbalance','coa','flags','settings',
-    'pl','cashflow','budget','reconcile','duplicates','audit','workingpapers','memo',
-    'student-dashboard','spending','subscriptions','goals',
-    'fl-dashboard','income','clients','taxes'
-  ];
-  ALL_VIEWS.forEach(v => {
-    const el = document.getElementById('view-' + v);
-    if (el) el.style.display = 'none';
-  });
+  // Hide all views
+  const ALL_VIEWS=['onboard','dashboard','transactions','trialbalance','coa','flags','settings','pl','cashflow','budget','reconcile','duplicates','audit','workingpapers','memo','student-dashboard','spending','subscriptions','goals','fl-dashboard','income','clients','taxes'];ALL_VIEWS.forEach(v=>{const el=document.getElementById('view-'+v);if(el)el.style.display='none';});
   document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active'));
 
   // New views (contractors/forecast/invoices) don't have dedicated HTML containers yet
@@ -3052,9 +3026,8 @@ function showView(name) {
     void view.offsetWidth;
     view.classList.add('view-enter');
   }
-  // Always scroll to top when switching views
-  const main = document.getElementById('mainContent') || document.querySelector('.main');
-  if (main) main.scrollTop = 0;
+  const _main = document.querySelector('.main');
+  if (_main) _main.scrollTop = 0;
   window.scrollTo(0, 0);
   renderView(name);
   setTimeout(renderSmartAlerts, 100);
