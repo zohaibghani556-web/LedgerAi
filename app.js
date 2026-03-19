@@ -1431,12 +1431,45 @@ function renderFlags(){
   if(lbl) lbl.textContent=`${label} — ${flagged.length} item${flagged.length!==1?'s':''} flagged`;
   document.querySelectorAll('[id^="sidebarFlagBadge"]').forEach(b=>b.textContent=flagged.length);
   const container=document.getElementById('flagsContainer'); if(!container) return;
-  if(!flagged.length){container.innerHTML='<div class="empty"><div class="empty-icon">✅</div><p>No flagged transactions</p></div>';return;}
-  container.innerHTML=`<div class="flags-grid">${flagged.map(r=>{
+  if(!flagged.length){
+    container.innerHTML='<div class="empty" style="padding:60px 28px"><div class="empty-icon">✅</div><p>No flagged transactions — everything looks good!</p></div>';
+    return;
+  }
+  // Sort by severity: high first
+  const sorted=[...flagged].sort((a,b)=>{
+    const sev=r=>r.flag.includes('⚠')||r.flag.includes('T4A')||r.flag.includes('Large')?0:r.flag.includes('50%')?1:2;
+    return sev(a)-sev(b);
+  });
+  const high=sorted.filter(r=>r.flag.includes('⚠')||r.flag.includes('T4A')||r.flag.includes('Large'));
+  const med=sorted.filter(r=>r.flag.includes('50%'));
+  const low=sorted.filter(r=>!r.flag.includes('⚠')&&!r.flag.includes('T4A')&&!r.flag.includes('Large')&&!r.flag.includes('50%'));
+  const cardHTML=(r,sev)=>{
     const gIdx=txns.findIndex(t=>t.date===r.date&&t.description===r.description&&t.amount===r.amount);
-    const severity=r.flag.includes('⚠')?'severity-high':r.flag.includes('50%')?'severity-medium':'severity-low';
-    return `<div class="flag-card ${severity}"><div class="flag-title">${r.description}</div><div class="flag-meta">${r.date} · ${currencySymbol()}${fmtAmt(Math.abs(parseFloat(r.amount||0)))} · ${r.category||'Uncategorized'}</div><div class="flag-body">${r.flag}</div>${gIdx>=0?`<button class="btn btn-sm" style="margin-top:10px;font-size:10px;background:var(--green-l);color:var(--green);border:1px solid rgba(30,102,64,0.2);" onclick="clearFlag(${gIdx})">✓ Mark Resolved</button>`:''}</div>`;
-  }).join('')}</div>`;
+    const sevClass=sev==='high'?'severity-high':sev==='medium'?'severity-medium':'severity-low';
+    const badgeClass=sev==='high'?'fsb-high':sev==='medium'?'fsb-medium':'fsb-low';
+    const badgeLabel=sev==='high'?'High':sev==='medium'?'Medium':'Low';
+    const icon=sev==='high'?'🚨':sev==='medium'?'⚠️':'ℹ️';
+    return `<div class="flag-card ${sevClass}" style="animation-delay:${gIdx*.02}s">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px">
+        <div class="flag-title" style="margin-bottom:0">${icon} ${r.description}</div>
+        <span class="flag-severity-badge ${badgeClass}">${badgeLabel}</span>
+      </div>
+      <div class="flag-meta">
+        <span>${r.date}</span>
+        <span>·</span>
+        <span style="font-weight:700;color:var(--ink)">${currencySymbol()}${fmtAmt(Math.abs(parseFloat(r.amount||0)))}</span>
+        <span>·</span>
+        <span>${r.category||'Uncategorized'}</span>
+      </div>
+      <div class="flag-body">${r.flag}</div>
+      ${gIdx>=0?`<div style="margin-top:14px"><button class="btn btn-sm btn-green" onclick="clearFlag(${gIdx})">✓ Mark Resolved</button></div>`:''}
+    </div>`;
+  };
+  container.innerHTML=`<div class="flags-grid">
+    ${high.map(r=>cardHTML(r,'high')).join('')}
+    ${med.map(r=>cardHTML(r,'medium')).join('')}
+    ${low.map(r=>cardHTML(r,'low')).join('')}
+  </div>`;
 }
 
 function clearFlag(index){
@@ -2776,20 +2809,21 @@ function renderSubscriptions() {
     return;
   }
 
-  grid.innerHTML = `
-    <div style="margin-bottom:16px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
-      <div class="stat-card in"><div class="stat-val">${sym}${fmt(bizMonthly)}</div><div class="stat-lbl">Business/mo</div></div>
-      <div class="stat-card in"><div class="stat-val">${sym}${fmt(perMonthly)}</div><div class="stat-lbl">Personal/mo</div></div>
-      <div class="stat-card in"><div class="stat-val">${sym}${fmt(total*12)}</div><div class="stat-lbl">Annual total</div></div>
-    </div>
-    ${subs.map(s=>`
+  grid.innerHTML = subs.map(s=>`
       <div class="sub-card${s.personal?' sub-personal':''}">
         <div class="sub-icon">${s.icon}</div>
         <div class="sub-name">${s.name}</div>
         <div class="sub-amt">${sym}${fmt(s.amount)}/mo</div>
-        <div class="sub-meta">${s.count} charge${s.count!==1?'s':''} · ${s.personal?'<span style="color:var(--gold)">Personal</span>':'<span style="color:var(--green)">Business</span>'}</div>
-      </div>`).join('')}
-    ${personal.length?`<div style="margin-top:12px;padding:10px 14px;background:var(--gold-l);border-left:3px solid var(--gold);font-size:12px;color:var(--gold)">⚠ ${sym}${fmt(perMonthly)}/mo (${sym}${fmt(perMonthly*12)}/year) in personal subscriptions — not tax deductible</div>`:''}`;
+        <div class="sub-meta">${s.count} charge${s.count!==1?'s':''}</div>
+        <span class="sub-tag ${s.personal?'sub-tag-personal':'sub-tag-business'}">${s.personal?'Personal':'Business'}</span>
+      </div>`).join('');
+
+  if (personal.length) {
+    const warn = document.createElement('div');
+    warn.style.cssText = 'margin:0 28px 16px;padding:12px 16px;background:var(--gold-l);border-left:3px solid var(--gold);font-size:12px;color:var(--gold);border-radius:0 var(--radius-sm) var(--radius-sm) 0;';
+    warn.innerHTML = `⚠ ${sym}${fmt(perMonthly)}/mo (${sym}${fmt(perMonthly*12)}/year) in personal subscriptions — not tax deductible`;
+    grid.parentNode.insertBefore(warn, grid.nextSibling);
+  }
 }
 
 // ============================================================
@@ -2977,13 +3011,13 @@ function renderSpending() {
 // ============================================================
 function showView(name) {
   // Hide all views by ID (views use id="view-*", not a class)
-  const VIEWS = [
+  const ALL_VIEWS = [
     'onboard','dashboard','transactions','trialbalance','coa','flags','settings',
     'pl','cashflow','budget','reconcile','duplicates','audit','workingpapers','memo',
     'student-dashboard','spending','subscriptions','goals',
     'fl-dashboard','income','clients','taxes'
   ];
-  VIEWS.forEach(v => {
+  ALL_VIEWS.forEach(v => {
     const el = document.getElementById('view-' + v);
     if (el) el.style.display = 'none';
   });
@@ -3004,9 +3038,6 @@ function showView(name) {
       if (wpContent) wpContent.innerHTML = '<div id="' + name + 'Content" style="padding:0"></div>';
       renderView(name);
     }
-    const main = document.getElementById('mainContent') || document.querySelector('.main');
-    if (main) main.scrollTop = 0;
-    window.scrollTo(0, 0);
     setTimeout(renderSmartAlerts, 100);
     return;
   }
@@ -3021,7 +3052,7 @@ function showView(name) {
     void view.offsetWidth;
     view.classList.add('view-enter');
   }
-  // Always scroll to top of main content when switching views
+  // Always scroll to top when switching views
   const main = document.getElementById('mainContent') || document.querySelector('.main');
   if (main) main.scrollTop = 0;
   window.scrollTo(0, 0);
